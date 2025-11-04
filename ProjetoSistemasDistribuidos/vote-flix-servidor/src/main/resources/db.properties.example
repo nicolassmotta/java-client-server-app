@@ -1,0 +1,3 @@
+db.url=jdbc:mysql://localhost:3306/voteflix_db
+db.user=seu_usuario_aqui
+db.password=sua_senha_aqui

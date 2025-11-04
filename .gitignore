@@ -1,0 +1,16 @@
+# Ignora arquivos gerados pelo Maven
+target/
+
+# Ignora arquivos de IDE (IntelliJ, Eclipse, etc)
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+
+# Ignora arquivos de sistema
+.DS_Store
+
+# Ignora o arquivo de propriedades do banco de dados
+db.properties

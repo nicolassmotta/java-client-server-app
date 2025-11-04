@@ -1,0 +1,27 @@
+/* styles.css */
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-background-color: #f4f4f4;
+}
+
+.button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.text-area .content {
+    -fx-background-color: #ffffff;
+    -fx-font-family: 'Consolas', 'monospace';
+    -fx-font-size: 10pt;
+}
+
+.label {
+    -fx-font-size: 12pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}

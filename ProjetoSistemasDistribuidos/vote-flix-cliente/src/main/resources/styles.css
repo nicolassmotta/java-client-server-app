@@ -1,0 +1,220 @@
+/* Tema geral da aplicação */
+.root {
+    -fx-background-color: #141414; /* Preto de fundo (padrão Netflix) */
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Títulos principais de cada tela */
+.title-label {
+    -fx-font-size: 28px;
+    -fx-text-fill: #FFFFFF; /* Branco */
+    -fx-font-weight: bold;
+}
+
+/* Rótulos comuns (Login:, Senha:, etc.) */
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #B3B3B3; /* Cinza claro */
+    -fx-font-weight: bold;
+}
+
+/* Estilo dos botões */
+.button {
+    -fx-background-color: #E50914; /* Vermelho VoteFlix/Netflix */
+    -fx-text-fill: #FFFFFF; /* Texto branco */
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10 20 10 20;
+    -fx-background-radius: 4; /* Bordas levemente arredondadas */
+    -fx-cursor: hand; /* Cursor de mão ao passar por cima */
+}
+
+/* Efeito do botão ao passar o mouse */
+.button:hover {
+    -fx-background-color: #F40612; /* Vermelho um pouco mais claro */
+}
+
+/* Botão de "Voltar" ou secundário */
+.secondary-button {
+    -fx-background-color: #333333; /* Cinza escuro */
+}
+
+.secondary-button:hover {
+    -fx-background-color: #454545; /* Cinza um pouco mais claro */
+}
+
+/* Campos de texto, senha e área de texto */
+.text-field, .password-field, .text-area {
+    -fx-background-color: #333333;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-background-radius: 4;
+    -fx-border-color: #1F1F1F;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-prompt-text-fill: #8C8C8C; /* Cor do texto de dica */
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 2;
+}
+
+/* Cor de fundo interna do TextArea */
+.text-area .content {
+     -fx-background-color: #333333;
+}
+
+
+/* Rótulo de status (para mensagens de erro/sucesso) */
+.status-label {
+    -fx-text-fill: #E87C03; /* Laranja/Amarelo para alertas */
+    -fx-font-weight: bold;
+}
+
+/* --- NOVOS ESTILOS PARA CORRIGIR A UI --- */
+
+/* --- Controles de Lista (ListView) --- */
+.list-view {
+    -fx-background-color: #2b2b2b; /* Fundo da lista */
+    -fx-border-color: #1F1F1F;
+    -fx-border-width: 1;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #B3B3B3; /* Cor do texto padrão (para TelaAdminUsuarios) */
+    -fx-padding: 8px 12px;
+    -fx-font-size: 14px;
+    -fx-border-width: 0 0 1 0; /* Linha separadora fina */
+    -fx-border-color: #1F1F1F;
+}
+
+/* Cor da célula ao passar o mouse */
+.list-cell:hover {
+    -fx-background-color: #3c3c3c;
+}
+
+/* Cor da célula selecionada */
+.list-cell:selected {
+    -fx-background-color: #E50914; /* Vermelho principal */
+    -fx-text-fill: #FFFFFF; /* Texto branco na seleção */
+}
+
+/* Placeholder da lista (ex: "Nenhum filme") */
+.list-view > .virtual-flow > .clipped-container > .sheet > .label {
+    -fx-text-fill: #8C8C8C; /* Cinza de dica */
+}
+
+/* --- Estilos para Células Customizadas (Filmes e Reviews) --- */
+.list-cell-filme-titulo, .list-cell-review-titulo {
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+    -fx-text-fill: #FFFFFF; /* Branco para destacar */
+}
+
+.list-cell-filme-info, .list-cell-review-desc {
+    -fx-font-style: italic;
+    -fx-padding: 0 0 0 5;
+    -fx-text-fill: #B3B3B3; /* Cinza claro */
+}
+
+.list-cell-review-desc {
+    -fx-padding: 0 0 0 10;
+}
+
+/* Muda a cor dos sub-textos quando a célula é selecionada */
+.list-cell:selected .list-cell-filme-info,
+.list-cell:selected .list-cell-review-desc {
+    -fx-text-fill: #f0f0f0;
+}
+
+
+/* --- ComboBox (Filtros) --- */
+.combo-box {
+    -fx-background-color: #333333;
+    -fx-border-color: #1F1F1F;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #FFFFFF; /* Texto no dropdown */
+    -fx-background-color: #333333;
+    -fx-border-width: 0; /* Remove bordas da célula do dropdown */
+}
+
+.combo-box .arrow {
+     -fx-background-color: #E50914; /* Seta vermelha */
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #454545;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #E50914;
+}
+
+/* --- Dialogs (Pop-ups de Edição/Criação) --- */
+.dialog-pane {
+    -fx-background-color: #1f1f1f; /* Fundo do popup */
+    -fx-border-color: #333333;
+    -fx-border-width: 1;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: #B3B3B3;
+}
+
+.dialog-pane:header .header-panel {
+    -fx-background-color: #141414; /* Fundo do cabeçalho */
+}
+
+.dialog-pane:header .header-panel .label {
+     -fx-font-size: 18px;
+     -fx-text-fill: #FFFFFF;
+     -fx-font-weight: bold;
+}
+
+/* Caixa de reviews no Dialog de Detalhes */
+.reviews-box {
+    -fx-background-color: #2b2b2b;
+    -fx-padding: 10;
+}
+
+/* --- Outros --- */
+.separator .line {
+    -fx-border-color: #333333; /* Cor da linha separadora */
+    -fx-border-width: 1px 0 0 0;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .viewport {
+     -fx-background-color: #2b2b2b; /* Fundo da área de scroll (gêneros) */
+}
+
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #E50914; /* Cor da barra de scroll */
+}
+
+.scroll-pane .scroll-bar .track {
+    -fx-background-color: #333333; /* Fundo do trilho */
+}
+
+/* Cor dos CheckBox (na tela de gêneros) */
+.check-box .box {
+    -fx-background-color: #333333;
+    -fx-border-color: #B3B3B3;
+}
+.check-box:selected .mark {
+    -fx-background-color: #E50914; /* Marca de seleção vermelha */
+}
+.check-box .text {
+    -fx-fill: #B3B3B3; /* Texto do CheckBox */
+}
