@@ -28,7 +28,6 @@ public class TelaAdminFilmes {
     private ListView<FilmeItem> listaFilmesView = new ListView<>();
     private List<FilmeItem> masterList = new ArrayList<>(); // <-- NOVA
 
-    // --- NOVOS COMPONENTES DE UI E ESTADO ---
     private ComboBox<String> filtroGenero = new ComboBox<>();
     private Button btnAnterior = new Button("<< Anterior");
     private Button btnProximo = new Button("Próximo >>");
@@ -50,12 +49,19 @@ public class TelaAdminFilmes {
         String qtdAvaliacoes;
         List<String> generos;
 
-        public FilmeItem(String id, String titulo, String nota, String qtdAvaliacoes, List<String> generos) {
+        String diretor;
+        String ano;
+        String sinopse;
+
+        public FilmeItem(String id, String titulo, String nota, String qtdAvaliacoes, List<String> generos, String diretor, String ano, String sinopse) {
             this.id = id;
             this.titulo = titulo;
             this.nota = nota;
             this.qtdAvaliacoes = qtdAvaliacoes;
             this.generos = generos;
+            this.diretor = diretor;
+            this.ano = ano;
+            this.sinopse = sinopse;
         }
     }
 
@@ -175,8 +181,6 @@ public class TelaAdminFilmes {
         return dialog.showAndWait();
     }
 
-    // ... (Restante do arquivo TelaAdminFilmes.java permanece igual) ...
-    // ... (atualizarListaExibida, criarCena, carregarFilmes, etc.)
     private void atualizarListaExibida() {
         List<FilmeItem> listaFiltrada = new ArrayList<>();
         String generoSelecionado = filtroGenero.getValue();
@@ -311,24 +315,27 @@ public class TelaAdminFilmes {
                 AlertaUtil.mostrarErro("Erro", "Selecione um filme para editar.");
                 return;
             }
-            ClienteSocket.getInstance().enviarBuscarFilmePorId(selecionado.id, (sucessoBusca, dadosCompletos, mensagemBusca) -> {
-                Platform.runLater(() -> {
-                    if (!sucessoBusca || dadosCompletos == null || !dadosCompletos.isJsonObject() || !dadosCompletos.getAsJsonObject().has("filme")) {
-                        AlertaUtil.mostrarErro("Erro ao Carregar Dados", mensagemBusca);
-                        return;
-                    }
-                    JsonObject filmeParaEditar = dadosCompletos.getAsJsonObject().getAsJsonObject("filme");
-                    abrirDialogFilme(filmeParaEditar).ifPresent(filmeEditado -> {
-                        ClienteSocket.getInstance().adminEditarFilme(filmeEditado, (sucessoEdicao, mensagemEdicao) -> {
-                            Platform.runLater(() -> {
-                                if (sucessoEdicao) {
-                                    AlertaUtil.mostrarInformacao("Sucesso", mensagemEdicao);
-                                    carregarFilmes(); // Atualiza a lista
-                                } else {
-                                    AlertaUtil.mostrarErro("Erro ao Editar", mensagemEdicao);
-                                }
-                            });
-                        });
+
+            JsonObject filmeParaEditar = new JsonObject();
+            filmeParaEditar.addProperty("id", selecionado.id);
+            filmeParaEditar.addProperty("titulo", selecionado.titulo);
+            filmeParaEditar.addProperty("diretor", selecionado.diretor);
+            filmeParaEditar.addProperty("ano", selecionado.ano);
+            filmeParaEditar.addProperty("sinopse", selecionado.sinopse);
+            JsonArray generosJsonArray = new JsonArray();
+            for (String genero : selecionado.generos) {
+                generosJsonArray.add(genero);
+            }
+            filmeParaEditar.add("genero", generosJsonArray);
+            abrirDialogFilme(filmeParaEditar).ifPresent(filmeEditado -> {
+                ClienteSocket.getInstance().adminEditarFilme(filmeEditado, (sucessoEdicao, mensagemEdicao) -> {
+                    Platform.runLater(() -> {
+                        if (sucessoEdicao) {
+                            AlertaUtil.mostrarInformacao("Sucesso", mensagemEdicao);
+                            carregarFilmes(); // Atualiza a lista
+                        } else {
+                            AlertaUtil.mostrarErro("Erro ao Editar", mensagemEdicao);
+                        }
                     });
                 });
             });
@@ -396,9 +403,10 @@ public class TelaAdminFilmes {
         ClienteSocket.getInstance().enviarListarFilmes((sucesso, dados, mensagem) -> {
             Platform.runLater(() -> {
                 if (sucesso) {
-                    if (dados != null && dados.isJsonArray() && dados.getAsJsonArray().size() > 0) {
+                    if (dados != null && dados.isJsonArray() && !dados.getAsJsonArray().isEmpty()) {
                         for (JsonElement filmeElement : dados.getAsJsonArray()) {
                             JsonObject obj = filmeElement.getAsJsonObject();
+
                             String nota = "0.0";
                             if (obj.has("nota") && !obj.get("nota").isJsonNull()) {
                                 nota = obj.get("nota").getAsString();
@@ -415,13 +423,21 @@ public class TelaAdminFilmes {
                                     generosDoFilme.add(genEl.getAsString());
                                 }
                             }
+
+                            String diretor = obj.has("diretor") ? obj.get("diretor").getAsString() : "";
+                            String ano = obj.has("ano") ? obj.get("ano").getAsString() : "";
+                            String sinopse = obj.has("sinopse") ? obj.get("sinopse").getAsString() : "";
+
                             masterList.add(
                                     new FilmeItem(
                                             obj.get("id").getAsString(),
                                             obj.get("titulo").getAsString(),
                                             nota,
                                             qtd,
-                                            generosDoFilme
+                                            generosDoFilme,
+                                            diretor,
+                                            ano,
+                                            sinopse
                                     )
                             );
                         }
