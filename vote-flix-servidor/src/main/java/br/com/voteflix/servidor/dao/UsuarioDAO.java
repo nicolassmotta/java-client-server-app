@@ -1,3 +1,4 @@
+// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/dao/UsuarioDAO.java
 package br.com.voteflix.servidor.dao;
 
 import br.com.voteflix.servidor.config.ConexaoBancoDados;
@@ -309,6 +310,8 @@ public class UsuarioDAO {
      * @return true se o usuário e suas reviews foram apagados com sucesso, false caso contrário.
      */
     public boolean apagarUsuario(String id) {
+        // CORRIGIDO: RF 1.6 - SQL para buscar as reviews antes de deletar
+        String selectReviewsSql = "SELECT filme_id, nota FROM reviews WHERE usuario_id = ?";
         String deleteReviewsSql = "DELETE FROM reviews WHERE usuario_id = ?";
         String deleteUsuarioSql = "DELETE FROM usuarios WHERE id = ?";
         int usuarioId;
@@ -320,14 +323,6 @@ public class UsuarioDAO {
             return false;
         }
 
-        // Segurança adicional: Recusar apagar ID 1 (assumindo que seja o admin inicial)
-        // Ou buscar pelo login antes e verificar se é 'admin'
-        // if (usuarioId == 1) { // Exemplo simples
-        //    System.err.println("Tentativa de apagar usuário com ID 1 (potencialmente admin). Operação negada.");
-        //    return false;
-        // }
-
-
         Connection conn = null; // Declarado fora para rollback/commit no catch/finally
         try {
             conn = ConexaoBancoDados.obterConexao();
@@ -338,7 +333,22 @@ public class UsuarioDAO {
 
             conn.setAutoCommit(false); // 1. Inicia transação
 
-            // 2. Excluir reviews associadas (não falha se não houver reviews)
+            // CORREÇÃO (RF 1.6): Recalcular médias ANTES de apagar reviews
+            ReviewDAO reviewDAO = new ReviewDAO(); // Instancia o DAO para usar seu método
+            try (PreparedStatement pstmtSelectReviews = conn.prepareStatement(selectReviewsSql)) {
+                pstmtSelectReviews.setInt(1, usuarioId);
+                try (ResultSet rsReviews = pstmtSelectReviews.executeQuery()) {
+                    while (rsReviews.next()) {
+                        int filmeId = rsReviews.getInt("filme_id");
+                        int notaAntiga = rsReviews.getInt("nota");
+                        // Chamar o método do ReviewDAO para recalcular (notaNova = 0)
+                        reviewDAO.recalcularMediaFilme(conn, filmeId, 0, notaAntiga);
+                    }
+                }
+            }
+
+
+            // 2. Excluir reviews associadas (agora seguro)
             try (PreparedStatement pstmtReviews = conn.prepareStatement(deleteReviewsSql)) {
                 pstmtReviews.setInt(1, usuarioId);
                 pstmtReviews.executeUpdate();
@@ -351,7 +361,7 @@ public class UsuarioDAO {
                 int affectedRows = pstmtUsuario.executeUpdate();
                 if (affectedRows == 0) {
                     System.err.println("Usuário com ID " + usuarioId + " não encontrado para exclusão.");
-                    conn.rollback(); // Desfaz a transação (embora nada tenha sido feito no passo 2 talvez)
+                    conn.rollback(); // Desfaz a transação
                     return false; // Usuário não encontrado
                 }
                 System.out.println("Usuário com ID " + usuarioId + " excluído.");

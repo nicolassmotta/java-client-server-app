@@ -1,3 +1,4 @@
+// vote-flix-cliente/src/main/java/br/com/voteflix/cliente/ui/TelaMenu.java
 package br.com.voteflix.cliente.ui;
 
 import br.com.voteflix.cliente.net.ClienteSocket;
@@ -58,8 +59,9 @@ public class TelaMenu {
                             if (dados.isJsonPrimitive() && dados.getAsJsonPrimitive().isString()) {
                                 login = dados.getAsString();
                             }
-                            else if (dados.isJsonObject() && dados.getAsJsonObject().has("login")) {
-                                login = dados.getAsJsonObject().get("login").getAsString();
+                            // CORRIGIDO: RNF 7.6
+                            else if (dados.isJsonObject() && dados.getAsJsonObject().has("usuario_login")) {
+                                login = dados.getAsJsonObject().get("usuario_login").getAsString();
                             }
 
                             if (login != null) {

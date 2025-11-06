@@ -1,3 +1,4 @@
+// vote-flix-cliente/src/main/java/br/com/voteflix/cliente/net/ClienteSocket.java
 package br.com.voteflix.cliente.net;
 
 import br.com.voteflix.cliente.security.TokenStorage;
@@ -194,8 +195,9 @@ public class ClienteSocket {
     public void enviarLogin(String login, String senha, BiConsumer<Boolean, String> callback) {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "LOGIN");
-        request.addProperty("usuario", login);
-        request.addProperty("senha", senha);
+        // CORRIGIDO: RNF 7.6
+        request.addProperty("usuario_login", login);
+        request.addProperty("usuario_senha", senha);
 
         enviarRequisicao(request, response -> {
             if (response == null) {
@@ -237,9 +239,10 @@ public class ClienteSocket {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "CRIAR_USUARIO");
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("nome", login);
-        usuario.addProperty("senha", senha);
-        request.add("usuario", usuario);
+        // CORRIGIDO: RNF 7.6
+        usuario.addProperty("usuario_login", login);
+        usuario.addProperty("usuario_senha", senha);
+        request.add("usuario_dados", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "201", callback);
@@ -250,7 +253,8 @@ public class ClienteSocket {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "LISTAR_PROPRIO_USUARIO");
         enviarRequisicao(request, response -> {
-            processarRespostaComDados(response, "usuario", callback);
+            // CORRIGIDO: RNF 7.6 (Servidor enviará 'usuario_login')
+            processarRespostaComDados(response, "usuario_login", callback);
         });
     }
 
@@ -258,8 +262,9 @@ public class ClienteSocket {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "EDITAR_PROPRIO_USUARIO");
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("senha", novaSenha);
-        request.add("usuario", usuario);
+        // CORRIGIDO: RNF 7.6
+        usuario.addProperty("nova_senha", novaSenha);
+        request.add("usuario_dados", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "200", callback);
@@ -465,8 +470,9 @@ public class ClienteSocket {
         request.addProperty("id", idUsuario);
 
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("senha", novaSenha);
-        request.add("usuario", usuario);
+        // CORRIGIDO: RNF 7.6
+        usuario.addProperty("nova_senha", novaSenha);
+        request.add("usuario_dados", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "200", callback);
@@ -481,10 +487,5 @@ public class ClienteSocket {
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "200", callback);
         });
-    }
-
-    @Deprecated
-    public void fecharConexao() {
-        solicitarLogoutEFechamento(null);
     }
 }

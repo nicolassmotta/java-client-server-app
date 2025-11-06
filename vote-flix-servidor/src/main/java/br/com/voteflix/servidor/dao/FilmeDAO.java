@@ -1,3 +1,4 @@
+// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/dao/FilmeDAO.java
 package br.com.voteflix.servidor.dao;
 
 import br.com.voteflix.servidor.config.ConexaoBancoDados;
@@ -17,7 +18,8 @@ public class FilmeDAO {
     public static final int ERRO_CONEXAO = 4;
     public static final int ERRO_NAO_ENCONTRADO = 5;
 
-    private boolean verificarDuplicidadeFilme(Connection conn, String titulo, String diretor, int ano, Integer idExcluido) throws SQLException {
+    // CORRIGIDO: RNF 7.10 - Aceita 'ano' e 'idExcluido' como String, converte para Int
+    private boolean verificarDuplicidadeFilme(Connection conn, String titulo, String diretor, String ano, String idExcluido) throws SQLException {
         String sql = "SELECT id FROM filmes WHERE titulo = ? AND diretor = ? AND ano = ?";
         if (idExcluido != null) {
             sql += " AND id != ?";
@@ -27,9 +29,9 @@ public class FilmeDAO {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, titulo);
             pstmt.setString(2, diretor);
-            pstmt.setInt(3, ano);
+            pstmt.setInt(3, Integer.parseInt(ano)); // CONVERTIDO
             if (idExcluido != null) {
-                pstmt.setInt(4, idExcluido);
+                pstmt.setInt(4, Integer.parseInt(idExcluido)); // CONVERTIDO
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -38,11 +40,12 @@ public class FilmeDAO {
         }
     }
 
-    private List<String> obterGenerosPorFilmeId(Connection conn, int filmeId) throws SQLException {
+    // CORRIGIDO: RNF 7.10 - Aceita 'filmeId' como String, converte para Int
+    private List<String> obterGenerosPorFilmeId(Connection conn, String filmeId) throws SQLException {
         List<String> generos = new ArrayList<>();
         String sql = "SELECT g.nome FROM generos g JOIN filmes_generos fg ON g.id = fg.genero_id WHERE fg.filme_id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, filmeId);
+            pstmt.setInt(1, Integer.parseInt(filmeId)); // CONVERTIDO
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     generos.add(rs.getString("nome"));
@@ -53,12 +56,19 @@ public class FilmeDAO {
     }
 
 
-    // --- Métodos excluirFilme e editarFilme permanecem praticamente iguais ---
-    // (Eles já usavam transações)
-    public boolean excluirFilme(int filmeId) {
+    // CORRIGIDO: RNF 7.10 - Aceita 'filmeId' como String, converte para Int
+    public boolean excluirFilme(String filmeId) {
         String deleteReviewsSql = "DELETE FROM reviews WHERE filme_id = ?";
         String deleteGenerosSql = "DELETE FROM filmes_generos WHERE filme_id = ?";
         String deleteFilmeSql = "DELETE FROM filmes WHERE id = ?";
+        int filmeIdInt;
+
+        try {
+            filmeIdInt = Integer.parseInt(filmeId);
+        } catch (NumberFormatException e) {
+            System.err.println("ID de filme inválido para excluir: " + filmeId);
+            return false;
+        }
 
         // Usa try-with-resources para garantir fechamento da conexão
         try (Connection conn = ConexaoBancoDados.obterConexao()) {
@@ -69,19 +79,19 @@ public class FilmeDAO {
             try {
                 // 1. Excluir reviews associadas (ignora se não houver)
                 try (PreparedStatement pstmt = conn.prepareStatement(deleteReviewsSql)) {
-                    pstmt.setInt(1, filmeId);
+                    pstmt.setInt(1, filmeIdInt); // CONVERTIDO
                     pstmt.executeUpdate();
                 }
 
                 // 2. Excluir gêneros associados (ignora se não houver)
                 try (PreparedStatement pstmt = conn.prepareStatement(deleteGenerosSql)) {
-                    pstmt.setInt(1, filmeId);
+                    pstmt.setInt(1, filmeIdInt); // CONVERTIDO
                     pstmt.executeUpdate();
                 }
 
                 // 3. Excluir o filme
                 try (PreparedStatement pstmt = conn.prepareStatement(deleteFilmeSql)) {
-                    pstmt.setInt(1, filmeId);
+                    pstmt.setInt(1, filmeIdInt); // CONVERTIDO
                     int affectedRows = pstmt.executeUpdate();
                     if (affectedRows == 0) {
                         conn.rollback(); // Desfaz a transação se o filme não foi encontrado
@@ -105,6 +115,7 @@ public class FilmeDAO {
     }
 
 
+    // CORRIGIDO: RNF 7.10 - Converte IDs e Ano (Strings) para Int antes de enviar ao DB
     public int editarFilme(Filme filme, JsonArray generos) {
         // SQL para atualizar dados básicos do filme
         String updateFilmeSql = "UPDATE filmes SET titulo = ?, diretor = ?, ano = ?, sinopse = ? WHERE id = ?";
@@ -120,20 +131,21 @@ public class FilmeDAO {
             conn.setAutoCommit(false); // Inicia a transação
 
             try {
-                // --- NOVA VERIFICAÇÃO DE DUPLICIDADE ---
+                // --- Verificação de duplicidade (já aceita Strings) ---
                 if (verificarDuplicidadeFilme(conn, filme.getTitulo(), filme.getDiretor(), filme.getAno(), filme.getId())) {
                     conn.rollback();
                     return ERRO_DUPLICADO;
                 }
-                // --- FIM DA VERIFICAÇÃO ---
+
+                int filmeIdInt = Integer.parseInt(filme.getId());
 
                 // 1. Atualiza os dados principais do filme
                 try (PreparedStatement pstmtUpdate = conn.prepareStatement(updateFilmeSql)) {
                     pstmtUpdate.setString(1, filme.getTitulo());
                     pstmtUpdate.setString(2, filme.getDiretor());
-                    pstmtUpdate.setInt(3, filme.getAno());
+                    pstmtUpdate.setInt(3, Integer.parseInt(filme.getAno())); // CONVERTIDO
                     pstmtUpdate.setString(4, filme.getSinopse());
-                    pstmtUpdate.setInt(5, filme.getId());
+                    pstmtUpdate.setInt(5, filmeIdInt); // CONVERTIDO
                     int affectedRows = pstmtUpdate.executeUpdate();
 
                     if (affectedRows == 0) {
@@ -144,14 +156,14 @@ public class FilmeDAO {
 
                 // 2. Remove os gêneros antigos associados ao filme
                 try (PreparedStatement pstmtDelete = conn.prepareStatement(deleteGenerosSql)) {
-                    pstmtDelete.setInt(1, filme.getId());
+                    pstmtDelete.setInt(1, filmeIdInt); // CONVERTIDO
                     pstmtDelete.executeUpdate(); // Executa a exclusão
                 } // pstmtDelete fechado automaticamente
 
                 // 3. Insere os novos gêneros (usando batch para eficiência)
                 try (PreparedStatement pstmtInsert = conn.prepareStatement(insertGenerosSql)) {
                     for (JsonElement genero : generos) {
-                        pstmtInsert.setInt(1, filme.getId());
+                        pstmtInsert.setInt(1, filmeIdInt); // CONVERTIDO
                         pstmtInsert.setString(2, genero.getAsString());
                         pstmtInsert.addBatch(); // Adiciona a operação ao lote
                     }
@@ -161,9 +173,9 @@ public class FilmeDAO {
                 conn.commit(); // Confirma a transação se tudo deu certo
                 return SUCESSO;
 
-            } catch (SQLException e) {
+            } catch (SQLException | NumberFormatException e) { // Adicionado NumberFormatException
                 conn.rollback(); // Desfaz a transação em caso de erro
-                System.err.println("Erro de SQL ao editar filme: " + e.getMessage());
+                System.err.println("Erro de SQL ou Formato Numérico ao editar filme: " + e.getMessage());
                 return ERRO_SQL;
             }
         } catch (SQLException e) {
@@ -173,9 +185,9 @@ public class FilmeDAO {
         }
     }
 
+    // CORRIGIDO: RNF 7.10 - Lê dados do DB e seta nos campos String do Modelo
     public List<Filme> listarFilmes() {
         List<Filme> filmes = new ArrayList<>();
-        // Query principal sem JOINs desnecessários para média/contagem
         String sql = "SELECT id, titulo, diretor, ano, sinopse, nota_media_acumulada, total_avaliacoes FROM filmes";
 
         try (Connection conn = ConexaoBancoDados.obterConexao();
@@ -184,19 +196,19 @@ public class FilmeDAO {
 
             while (rs.next()) {
                 Filme filme = new Filme();
-                int filmeId = rs.getInt("id");
+                String filmeId = rs.getString("id"); // Lê como String
                 filme.setId(filmeId);
                 filme.setTitulo(rs.getString("titulo"));
                 filme.setDiretor(rs.getString("diretor"));
-                filme.setAno(rs.getInt("ano"));
+                filme.setAno(rs.getString("ano")); // Lê como String
                 filme.setSinopse(rs.getString("sinopse"));
 
-                // Busca gêneros separadamente
+                // Busca gêneros separadamente (agora aceita String)
                 filme.setGenero(obterGenerosPorFilmeId(conn, filmeId));
 
-                // Usa as novas colunas para nota e contagem
-                filme.setNota(rs.getDouble("nota_media_acumulada"));
-                filme.setQtdAvaliacoes(rs.getInt("total_avaliacoes"));
+                // Converte dados numéricos para String
+                filme.setNota(String.format("%.2f", rs.getDouble("nota_media_acumulada")));
+                filme.setQtdAvaliacoes(String.valueOf(rs.getInt("total_avaliacoes")));
                 filmes.add(filme);
             }
         } catch (SQLException e) {
@@ -206,40 +218,41 @@ public class FilmeDAO {
         return filmes;
     }
 
-    public Filme obterFilmePorId(int id) {
+    // CORRIGIDO: RNF 7.10 - Assinatura aceita String, converte para Int para query
+    public Filme obterFilmePorId(String id) {
         Filme filme = null;
-        // Query principal sem JOINs desnecessários para média/contagem
         String sql = "SELECT id, titulo, diretor, ano, sinopse, nota_media_acumulada, total_avaliacoes FROM filmes WHERE id = ?";
 
         try (Connection conn = ConexaoBancoDados.obterConexao();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, id);
+            pstmt.setInt(1, Integer.parseInt(id)); // CONVERTIDO
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     filme = new Filme();
-                    int filmeId = rs.getInt("id");
+                    String filmeId = rs.getString("id"); // Lê como String
                     filme.setId(filmeId);
                     filme.setTitulo(rs.getString("titulo"));
                     filme.setDiretor(rs.getString("diretor"));
-                    filme.setAno(rs.getInt("ano"));
+                    filme.setAno(rs.getString("ano")); // Lê como String
                     filme.setSinopse(rs.getString("sinopse"));
 
-                    // Busca gêneros separadamente
+                    // Busca gêneros separadamente (agora aceita String)
                     filme.setGenero(obterGenerosPorFilmeId(conn, filmeId));
 
-                    // Usa as novas colunas para nota e contagem
-                    filme.setNota(rs.getDouble("nota_media_acumulada"));
-                    filme.setQtdAvaliacoes(rs.getInt("total_avaliacoes"));
+                    // Converte dados numéricos para String
+                    filme.setNota(String.format("%.2f", rs.getDouble("nota_media_acumulada")));
+                    filme.setQtdAvaliacoes(String.valueOf(rs.getInt("total_avaliacoes")));
                 }
             }
-        } catch (SQLException e) {
-            System.err.println("Erro de SQL ao obter filme por ID: " + e.getMessage());
+        } catch (SQLException | NumberFormatException e) { // Adicionado NumberFormatException
+            System.err.println("Erro de SQL ou Formato Numérico ao obter filme por ID: " + e.getMessage());
             return null;
         }
         return filme;
     }
 
+    // CORRIGIDO: RNF 7.10 - Converte Ano (String) para Int para o DB
     public int criarFilme(Filme filme, JsonArray generos) {
         String sqlFilme = "INSERT INTO filmes (titulo, diretor, ano, sinopse) VALUES (?, ?, ?, ?)";
         String sqlGenero = "INSERT INTO filmes_generos (filme_id, genero_id) VALUES (?, (SELECT id FROM generos WHERE nome = ?))";
@@ -252,6 +265,7 @@ public class FilmeDAO {
             }
             conn.setAutoCommit(false);
 
+            // Verificação de duplicidade (já aceita Strings)
             if (verificarDuplicidadeFilme(conn, filme.getTitulo(), filme.getDiretor(), filme.getAno(), null)) {
                 conn.rollback();
                 return ERRO_DUPLICADO;
@@ -262,13 +276,13 @@ public class FilmeDAO {
             try (PreparedStatement pstmtFilme = conn.prepareStatement(sqlFilme, Statement.RETURN_GENERATED_KEYS)) {
                 pstmtFilme.setString(1, filme.getTitulo());
                 pstmtFilme.setString(2, filme.getDiretor());
-                pstmtFilme.setInt(3, filme.getAno());
+                pstmtFilme.setInt(3, Integer.parseInt(filme.getAno())); // CONVERTIDO
                 pstmtFilme.setString(4, filme.getSinopse());
 
                 if (pstmtFilme.executeUpdate() > 0) {
                     try (ResultSet generatedKeys = pstmtFilme.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
-                            filmeId = generatedKeys.getInt(1);
+                            filmeId = generatedKeys.getInt(1); // ID gerado pelo DB é INT
                         } else {
                             throw new SQLException("Falha ao obter o ID do filme criado.");
                         }
@@ -278,9 +292,10 @@ public class FilmeDAO {
                 }
             }
 
+            // O ID do filme (filmeId) é INT, como esperado pela tabela filmes_generos
             try (PreparedStatement pstmtGenero = conn.prepareStatement(sqlGenero)) {
                 for (JsonElement genero : generos) {
-                    pstmtGenero.setInt(1, filmeId);
+                    pstmtGenero.setInt(1, filmeId); // OK
                     pstmtGenero.setString(2, genero.getAsString());
                     pstmtGenero.addBatch(); // Adiciona ao lote
                 }
@@ -290,9 +305,9 @@ public class FilmeDAO {
             conn.commit();
             return SUCESSO;
 
-        } catch (SQLException e) {
+        } catch (SQLException | NumberFormatException e) { // Adicionado NumberFormatException
             // Em caso de qualquer erro SQL, desfaz a transação
-            System.err.println("Erro de SQL ao criar filme: " + e.getMessage());
+            System.err.println("Erro de SQL ou Formato Numérico ao criar filme: " + e.getMessage());
             try {
                 if (conn != null) conn.rollback();
             } catch (SQLException ex) {

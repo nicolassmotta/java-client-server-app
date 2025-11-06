@@ -1,3 +1,4 @@
+// vote-flix-cliente/src/main/java/br/com/voteflix/cliente/ui/TelaAdminFilmes.java
 package br.com.voteflix.cliente.ui;
 
 import br.com.voteflix.cliente.net.ClienteSocket;
@@ -76,13 +77,13 @@ public class TelaAdminFilmes {
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         TextField txtTitulo = new TextField();
-        txtTitulo.setPromptText("Título do filme");
+        txtTitulo.setPromptText("Título do filme (3-30 chars)"); // Dica mantida
         TextField txtDiretor = new TextField();
-        txtDiretor.setPromptText("Nome do diretor");
+        txtDiretor.setPromptText("Nome do diretor (3-30 chars)"); // Dica mantida
         TextField txtAno = new TextField();
-        txtAno.setPromptText("Ano de lançamento (ex: 2023)");
+        txtAno.setPromptText("Ano de lançamento (3-4 dígitos)"); // Dica mantida
         TextArea txtSinopse = new TextArea();
-        txtSinopse.setPromptText("Breve sinopse do filme");
+        txtSinopse.setPromptText("Breve sinopse do filme (max 250 chars)"); // Dica mantida
         txtSinopse.setWrapText(true);
 
         grid.add(new Label("Título:"), 0, 0);
@@ -135,33 +136,22 @@ public class TelaAdminFilmes {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == btnTipoSalvar) {
-                String titulo = txtTitulo.getText().trim();
-                String diretor = txtDiretor.getText().trim();
-                String anoStr = txtAno.getText().trim();
-                String sinopse = txtSinopse.getText().trim();
+                String titulo = txtTitulo.getText(); // Não usa trim()
+                String diretor = txtDiretor.getText();
+                String anoStr = txtAno.getText();
+                String sinopse = txtSinopse.getText();
                 List<String> generosSelecionadosList = checkBoxes.stream()
                         .filter(CheckBox::isSelected)
                         .map(CheckBox::getText)
                         .collect(Collectors.toList());
 
-                if (titulo.isEmpty() || diretor.isEmpty() || anoStr.isEmpty() || sinopse.isEmpty()) {
-                    AlertaUtil.mostrarErro("Erro de Validação", "Todos os campos (Título, Diretor, Ano, Sinopse) são obrigatórios.");
-                    return null;
-                }
+                // Validações de UI (não de negócio)
                 if (generosSelecionadosList.isEmpty()) {
                     AlertaUtil.mostrarErro("Erro de Validação", "Selecione pelo menos um gênero.");
                     return null;
                 }
-                try {
-                    int ano = Integer.parseInt(anoStr);
-                } catch (NumberFormatException e) {
-                    AlertaUtil.mostrarErro("Erro de Validação", "O ano deve ser um número válido.");
-                    return null;
-                }
 
-                if (titulo.length() > 100) { AlertaUtil.mostrarErro("Erro", "Título muito longo."); return null; }
-                if (diretor.length() > 100) { AlertaUtil.mostrarErro("Erro", "Nome do diretor muito longo."); return null; }
-                if (sinopse.length() > 500) { AlertaUtil.mostrarErro("Erro", "Sinopse muito longa."); return null; }
+                // Validações de negócio REMOVIDAS
 
                 JsonObject filmeJson = new JsonObject();
                 if (modoEdicao) {
@@ -169,7 +159,7 @@ public class TelaAdminFilmes {
                 }
                 filmeJson.addProperty("titulo", titulo);
                 filmeJson.addProperty("diretor", diretor);
-                filmeJson.addProperty("ano", anoStr); // Envia como string, servidor/DAO converte se necessário
+                filmeJson.addProperty("ano", anoStr); // Envia como string
                 filmeJson.addProperty("sinopse", sinopse);
 
                 JsonArray generosJsonArray = new JsonArray();
@@ -185,6 +175,8 @@ public class TelaAdminFilmes {
         return dialog.showAndWait();
     }
 
+    // ... (Restante do arquivo TelaAdminFilmes.java permanece igual) ...
+    // ... (atualizarListaExibida, criarCena, carregarFilmes, etc.)
     private void atualizarListaExibida() {
         List<FilmeItem> listaFiltrada = new ArrayList<>();
         String generoSelecionado = filtroGenero.getValue();

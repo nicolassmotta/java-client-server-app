@@ -1,3 +1,4 @@
+// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/net/GerenciadorCliente.java
 package br.com.voteflix.servidor.net;
 
 import br.com.voteflix.servidor.dao.FilmeDAO;
@@ -301,21 +302,21 @@ public class GerenciadorCliente implements Runnable {
 
     private void processarCadastro(JsonObject jsonObject) {
         try {
-            if (!jsonObject.has("usuario") || !jsonObject.get("usuario").isJsonObject()) {
+            if (!jsonObject.has("usuario_dados") || !jsonObject.get("usuario_dados").isJsonObject()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
-            JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
-            if (!usuarioJson.has("nome") || !usuarioJson.has("senha") ||
-                    !usuarioJson.get("nome").isJsonPrimitive() || !usuarioJson.get("nome").getAsJsonPrimitive().isString() ||
-                    !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString())
+            JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
+            if (!usuarioJson.has("usuario_login") || !usuarioJson.has("usuario_senha") ||
+                    !usuarioJson.get("usuario_login").isJsonPrimitive() || !usuarioJson.get("usuario_login").getAsJsonPrimitive().isString() ||
+                    !usuarioJson.get("usuario_senha").isJsonPrimitive() || !usuarioJson.get("usuario_senha").getAsJsonPrimitive().isString())
             {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
 
-            String nome = usuarioJson.get("nome").getAsString().trim();
-            String senha = usuarioJson.get("senha").getAsString();
+            String nome = usuarioJson.get("usuario_login").getAsString().trim();
+            String senha = usuarioJson.get("usuario_senha").getAsString();
 
             if (nome.isEmpty() || senha.isEmpty()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -357,15 +358,15 @@ public class GerenciadorCliente implements Runnable {
 
     private void processarLogin(JsonObject jsonObject) {
         try {
-            if (!jsonObject.has("usuario") || !jsonObject.has("senha") ||
-                    !jsonObject.get("usuario").isJsonPrimitive() || !jsonObject.get("senha").isJsonPrimitive())
+            if (!jsonObject.has("usuario_login") || !jsonObject.has("usuario_senha") ||
+                    !jsonObject.get("usuario_login").isJsonPrimitive() || !jsonObject.get("usuario_senha").isJsonPrimitive())
             {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
 
-            String usuario = jsonObject.get("usuario").getAsString();
-            String senha = jsonObject.get("senha").getAsString();
+            String usuario = jsonObject.get("usuario_login").getAsString();
+            String senha = jsonObject.get("usuario_senha").getAsString();
 
             if (usuario.trim().isEmpty() || senha.trim().isEmpty()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -393,7 +394,7 @@ public class GerenciadorCliente implements Runnable {
                 enviarErroComMensagem(403, "Erro: Sem permissão.");
             }
         } catch (Exception e) {
-            logger.accept("Erro inesperado durante o login para usuário '" + (jsonObject.has("usuario") ? jsonObject.get("usuario").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
+            logger.accept("Erro inesperado durante o login para usuário '" + (jsonObject.has("usuario_login") ? jsonObject.get("usuario_login").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
             enviarErroComMensagem(500, "Erro: Falha interna do servidor");
         }
     }
@@ -420,7 +421,7 @@ public class GerenciadorCliente implements Runnable {
                     JsonObject resposta = new JsonObject();
                     resposta.addProperty("status", "200");
                     resposta.addProperty("mensagem", "Sucesso: operação realizada com sucesso");
-                    resposta.addProperty("usuario", loginRetornado);
+                    resposta.addProperty("usuario_login", loginRetornado);
 
                     enviarResposta(resposta);
 
@@ -448,19 +449,19 @@ public class GerenciadorCliente implements Runnable {
                     return;
                 }
 
-                if (!jsonObject.has("usuario") || !jsonObject.get("usuario").isJsonObject()) {
+                if (!jsonObject.has("usuario_dados") || !jsonObject.get("usuario_dados").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
-                if (!usuarioJson.has("senha") || !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString()) {
+                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
+                if (!usuarioJson.has("nova_senha") || !usuarioJson.get("nova_senha").isJsonPrimitive() || !usuarioJson.get("nova_senha").getAsJsonPrimitive().isString()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                String novaSenha = usuarioJson.get("senha").getAsString();
+                String novaSenha = usuarioJson.get("nova_senha").getAsString();
 
                 if (novaSenha.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas"); // Alterado de 405 para 422
                     return;
                 }
                 if (novaSenha.length() < 3 || novaSenha.length() > 20 || !novaSenha.matches("^[a-zA-Z0-9]+$")) {
@@ -583,13 +584,8 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                int filmeId;
-                try {
-                    filmeId = Integer.parseInt(jsonObject.get("id_filme").getAsString());
-                } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
-                    return;
-                }
+                // CORRIGIDO: RNF 7.10 - Recebe String
+                String filmeId = jsonObject.get("id_filme").getAsString();
 
                 Filme filme = filmeDAO.obterFilmePorId(filmeId);
 
@@ -651,41 +647,38 @@ public class GerenciadorCliente implements Runnable {
 
                 String titulo = reviewJson.get("titulo").getAsString().trim();
                 String descricao = reviewJson.get("descricao").getAsString().trim();
-                int filmeId;
-                int nota;
-                int usuarioId;
+                // CORRIGIDO: RNF 7.10 - Recebe Strings
+                String filmeId = reviewJson.get("id_filme").getAsString();
+                String nota = reviewJson.get("nota").getAsString();
+                String usuarioId = claims.get("id", String.class);
 
-                try {
-                    filmeId = Integer.parseInt(reviewJson.get("id_filme").getAsString());
-                    nota = Integer.parseInt(reviewJson.get("nota").getAsString());
-                    String userIdStr = claims.get("id", String.class);
-                    if (userIdStr == null) throw new NumberFormatException("ID do usuário nulo no token");
-                    usuarioId = Integer.parseInt(userIdStr);
-                } catch (NumberFormatException e) {
-                    logger.accept("Erro ao converter dados numéricos ao criar review: " + e.getMessage());
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres"); //
+                if (titulo.isEmpty() || descricao.isEmpty() || filmeId.isEmpty() || nota.isEmpty()) {
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
 
-                if (titulo.isEmpty() || descricao.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
-                    return;
-                }
-                if (nota < 1 || nota > 5) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
-                    return;
-                }
+                // Validações RNF 6.2, 6.4, 6.5
                 if (titulo.length() > 50 || descricao.length() > 250) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                try {
+                    int notaInt = Integer.parseInt(nota);
+                    if (notaInt < 1 || notaInt > 5) { // RNF 5.6
+                        throw new NumberFormatException();
+                    }
+                    Integer.parseInt(filmeId); // Valida ID (RNF 4.1)
+                } catch (NumberFormatException e) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
 
                 Review review = new Review();
-                review.setId(usuarioId);
+                review.setId(usuarioId); // ID do usuário
                 review.setIdFilme(filmeId);
                 review.setTitulo(titulo);
                 review.setDescricao(descricao);
-                review.setNota(nota);
+                review.setNota(nota); // Passa String
 
                 if (reviewDAO.criarReview(review)) {
                     logger.accept("Review criada com sucesso para filme ID " + filmeId + " pelo usuário ID " + usuarioId);
@@ -706,17 +699,14 @@ public class GerenciadorCliente implements Runnable {
     private void processarEditarReview(JsonObject jsonObject) {
         processarComAutenticacao(jsonObject, claims -> {
             try {
-                String userIdStr = claims.get("id", String.class);
                 String funcao = claims.get("funcao", String.class);
-                int usuarioId;
-
-                try {
-                    usuarioId = Integer.parseInt(userIdStr);
-                } catch (NumberFormatException e) {
-                    logger.accept("Erro CRÍTICO ao converter ID do usuário do token para int: " + userIdStr);
-                    enviarErroComMensagem(500, "Erro: Falha interna do servidor");
+                if ("admin".equalsIgnoreCase(funcao)) {
+                    enviarErroComMensagem(403, "Erro: sem permissão");
                     return;
                 }
+
+                String userIdStr = claims.get("id", String.class);
+                int usuarioId = Integer.parseInt(userIdStr); // DAO.editarReview espera int para verificar permissão
 
                 if (!jsonObject.has("review") || !jsonObject.get("review").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -736,35 +726,36 @@ public class GerenciadorCliente implements Runnable {
 
                 String titulo = reviewJson.get("titulo").getAsString().trim();
                 String descricao = reviewJson.get("descricao").getAsString().trim();
-                int reviewId;
-                int nota;
+                // CORRIGIDO: RNF 7.10 - Recebe Strings
+                String reviewId = reviewJson.get("id").getAsString();
+                String nota = reviewJson.get("nota").getAsString();
 
-                try {
-                    reviewId = Integer.parseInt(reviewJson.get("id").getAsString());
-                    nota = Integer.parseInt(reviewJson.get("nota").getAsString());
-                } catch (NumberFormatException | ClassCastException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                if (titulo.isEmpty() || descricao.isEmpty() || reviewId.isEmpty() || nota.isEmpty()) {
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
 
-                if (titulo.isEmpty() || descricao.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
-                    return;
-                }
-                if (nota < 1 || nota > 5) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
-                    return;
-                }
+                // Validações RNF 6.2, 6.4, 6.5
                 if (titulo.length() > 50 || descricao.length() > 250) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                try {
+                    int notaInt = Integer.parseInt(nota);
+                    if (notaInt < 1 || notaInt > 5) { // RNF 5.6
+                        throw new NumberFormatException();
+                    }
+                    Integer.parseInt(reviewId); // Valida ID (RNF 4.1)
+                } catch (NumberFormatException e) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
 
                 Review review = new Review();
-                review.setId(reviewId);
+                review.setId(reviewId); // Passa String
                 review.setTitulo(titulo);
                 review.setDescricao(descricao);
-                review.setNota(nota);
+                review.setNota(nota); // Passa String
 
                 if (reviewDAO.editarReview(review, usuarioId)) {
                     enviarSucessoComMensagem(200, "Sucesso: operação realizada com sucesso");
@@ -786,25 +777,19 @@ public class GerenciadorCliente implements Runnable {
             try {
                 String userIdStr = claims.get("id", String.class);
                 String funcao = claims.get("funcao", String.class);
-                int usuarioId;
-
-                try {
-                    usuarioId = Integer.parseInt(userIdStr);
-                } catch (NumberFormatException e) {
-                    logger.accept("Erro CRÍTICO ao converter ID do usuário do token para int: " + userIdStr);
-                    enviarErroComMensagem(500, "Erro: Falha interna do servidor");
-                    return;
-                }
+                int usuarioId = Integer.parseInt(userIdStr); // DAO.excluirReview espera int
 
                 if (!jsonObject.has("id") || !jsonObject.get("id").isJsonPrimitive()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                int reviewId;
+                // CORRIGIDO: RNF 7.10 - Recebe String
+                String reviewId = jsonObject.get("id").getAsString();
+
                 try {
-                    reviewId = Integer.parseInt(jsonObject.get("id").getAsString());
+                    Integer.parseInt(reviewId); // Valida ID (RNF 4.1)
                 } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres"); //
+                    enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
                 }
 
@@ -823,19 +808,11 @@ public class GerenciadorCliente implements Runnable {
         });
     }
 
-        private void processarListarReviewsUsuario(JsonObject jsonObject) {
+    private void processarListarReviewsUsuario(JsonObject jsonObject) {
         processarComAutenticacao(jsonObject, claims -> {
             try {
                 String userIdStr = claims.get("id", String.class);
-                int userId;
-
-                try {
-                    userId = Integer.parseInt(userIdStr);
-                } catch (NumberFormatException e) {
-                    logger.accept("Erro CRÍTICO ao converter ID do usuário do token para int: " + userIdStr);
-                    enviarErroComMensagem(500, "Erro: Falha interna do servidor");
-                    return;
-                }
+                int userId = Integer.parseInt(userIdStr); // DAO espera int
 
                 List<Review> reviews = reviewDAO.listarReviewsPorUsuario(userId);
 
@@ -885,7 +862,7 @@ public class GerenciadorCliente implements Runnable {
                         !filmeJson.has("sinopse") || !filmeJson.has("genero") ||
                         !filmeJson.get("titulo").isJsonPrimitive() || !filmeJson.get("titulo").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("diretor").isJsonPrimitive() || !filmeJson.get("diretor").getAsJsonPrimitive().isString() ||
-                        !filmeJson.get("ano").isJsonPrimitive() || !filmeJson.get("ano").getAsJsonPrimitive().isString() || // <-- MUDANÇA (espera String)
+                        !filmeJson.get("ano").isJsonPrimitive() || !filmeJson.get("ano").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("sinopse").isJsonPrimitive() || !filmeJson.get("sinopse").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("genero").isJsonArray())
                 {
@@ -897,34 +874,40 @@ public class GerenciadorCliente implements Runnable {
                 String diretor = filmeJson.get("diretor").getAsString().trim();
                 String sinopse = filmeJson.get("sinopse").getAsString().trim();
                 JsonArray generos = filmeJson.getAsJsonArray("genero");
-                String anoStr = filmeJson.get("ano").getAsString(); // <-- MUDANÇA (lê como String)
-                int ano;
+                String anoStr = filmeJson.get("ano").getAsString().trim(); // CORRIGIDO: usa trim()
 
-                try {
-                    ano = Integer.parseInt(anoStr);
-                } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres"); //
-                    return;
-                }
-
-                if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty() || anoStr.isEmpty()) {
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 if (generos.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
 
-                if (titulo.length() > 30 || diretor.length() > 100 || sinopse.length() > 250) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                // Validações RNF 5.1, 5.3, 5.5, 6.1 (Corrigidas no passo anterior)
+                if (titulo.length() < 3 || titulo.length() > 30) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (título), verifique o tipo e quantidade de caracteres");
                     return;
                 }
+                if (diretor.length() < 3 || diretor.length() > 30) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (diretor), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                if (sinopse.length() > 250) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (sinopse), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                if (anoStr.length() < 3 || anoStr.length() > 4 || !anoStr.matches("^[0-9]+$") ) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (ano), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+
 
                 Filme filme = new Filme();
                 filme.setTitulo(titulo);
                 filme.setDiretor(diretor);
-                filme.setAno(ano);
+                filme.setAno(anoStr); // CORRIGIDO: RNF 7.10 - Passa String
                 filme.setSinopse(sinopse);
 
                 int resultado = filmeDAO.criarFilme(filme, generos);
@@ -961,10 +944,10 @@ public class GerenciadorCliente implements Runnable {
 
                 if (!filmeJson.has("id") || !filmeJson.has("titulo") || !filmeJson.has("diretor") || !filmeJson.has("ano") ||
                         !filmeJson.has("sinopse") || !filmeJson.has("genero") ||
-                        !filmeJson.get("id").isJsonPrimitive() || !filmeJson.get("id").getAsJsonPrimitive().isString() || // <-- MUDANÇA
+                        !filmeJson.get("id").isJsonPrimitive() || !filmeJson.get("id").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("titulo").isJsonPrimitive() || !filmeJson.get("titulo").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("diretor").isJsonPrimitive() || !filmeJson.get("diretor").getAsJsonPrimitive().isString() ||
-                        !filmeJson.get("ano").isJsonPrimitive() || !filmeJson.get("ano").getAsJsonPrimitive().isString() || // <-- MUDANÇA
+                        !filmeJson.get("ano").isJsonPrimitive() || !filmeJson.get("ano").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("sinopse").isJsonPrimitive() || !filmeJson.get("sinopse").getAsJsonPrimitive().isString() ||
                         !filmeJson.get("genero").isJsonArray())
                 {
@@ -977,37 +960,45 @@ public class GerenciadorCliente implements Runnable {
                 String sinopse = filmeJson.get("sinopse").getAsString().trim();
                 JsonArray generos = filmeJson.getAsJsonArray("genero");
                 String filmeIdStr = filmeJson.get("id").getAsString();
-                String anoStr = filmeJson.get("ano").getAsString();
-                int filmeId;
-                int ano;
+                String anoStr = filmeJson.get("ano").getAsString().trim(); // CORRIGIDO: usa trim()
 
-                try {
-                    filmeId = Integer.parseInt(filmeIdStr);
-                    ano = Integer.parseInt(anoStr);
-                } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres"); //
-                    return;
-                }
-
-                if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty() || anoStr.isEmpty() || filmeIdStr.isEmpty()) {
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 if (generos.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
 
-                if (titulo.length() > 30 || diretor.length() > 100 || sinopse.length() > 250) { //
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                // Validações RNF (Corrigidas no passo anterior)
+                if (titulo.length() < 3 || titulo.length() > 30) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (título), verifique o tipo e quantidade de caracteres");
                     return;
                 }
+                if (diretor.length() < 3 || diretor.length() > 30) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (diretor), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                if (sinopse.length() > 250) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (sinopse), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                if (anoStr.length() < 3 || anoStr.length() > 4 || !anoStr.matches("^[0-9]+$") ) {
+                    enviarErroComMensagem(405, "Erro: Campos inválidos (ano), verifique o tipo e quantidade de caracteres");
+                    return;
+                }
+                try { Integer.parseInt(filmeIdStr); } catch (NumberFormatException e) {
+                    enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
+                    return;
+                }
+
 
                 Filme filme = new Filme();
-                filme.setId(filmeId);
+                filme.setId(filmeIdStr); // CORRIGIDO: RNF 7.10 - Passa String
                 filme.setTitulo(titulo);
                 filme.setDiretor(diretor);
-                filme.setAno(ano);
+                filme.setAno(anoStr); // CORRIGIDO: RNF 7.10 - Passa String
                 filme.setSinopse(sinopse);
 
                 int resultado = filmeDAO.editarFilme(filme, generos);
@@ -1042,11 +1033,13 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                int filmeId;
+                // CORRIGIDO: RNF 7.10 - Recebe String
+                String filmeId = jsonObject.get("id").getAsString();
+
                 try {
-                    filmeId = Integer.parseInt(jsonObject.get("id").getAsString());
+                    Integer.parseInt(filmeId); // Valida ID (RNF 4.1)
                 } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
                 }
 
@@ -1084,6 +1077,7 @@ public class GerenciadorCliente implements Runnable {
                     JsonArray usuariosJson = new JsonArray();
                     for (Usuario u : usuarios) {
                         JsonObject userObj = new JsonObject();
+                        // CORRIGIDO: RNF 7.10 - Envia ID como String
                         userObj.addProperty("id", String.valueOf(u.getId()));
                         userObj.addProperty("nome", u.getNome());
                         usuariosJson.add(userObj);
@@ -1114,30 +1108,30 @@ public class GerenciadorCliente implements Runnable {
             }
 
             try {
-                if (!jsonObject.has("id") || !jsonObject.has("usuario") ||
+                if (!jsonObject.has("id") || !jsonObject.has("usuario_dados") ||
                         !jsonObject.get("id").isJsonPrimitive() || !jsonObject.get("id").getAsJsonPrimitive().isString() ||
-                        !jsonObject.get("usuario").isJsonObject()) {
+                        !jsonObject.get("usuario_dados").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 String targetUserId = jsonObject.get("id").getAsString();
-                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
+                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
 
-                if (!usuarioJson.has("senha") || !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString()) {
+                if (!usuarioJson.has("nova_senha") || !usuarioJson.get("nova_senha").isJsonPrimitive() || !usuarioJson.get("nova_senha").getAsJsonPrimitive().isString()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                String novaSenha = usuarioJson.get("senha").getAsString();
+                String novaSenha = usuarioJson.get("nova_senha").getAsString();
 
                 try {
-                    Integer.parseInt(targetUserId);
+                    Integer.parseInt(targetUserId); // Valida ID (RNF 4.1)
                 } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
                 }
 
                 if (novaSenha.isEmpty()) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 if (novaSenha.length() < 3 || novaSenha.length() > 20 || !novaSenha.matches("^[a-zA-Z0-9]+$")) {
@@ -1190,12 +1184,11 @@ public class GerenciadorCliente implements Runnable {
                     return;
                 }
                 String targetUserIdStr = jsonObject.get("id").getAsString();
-                int targetUserId;
 
                 try {
-                    targetUserId = Integer.parseInt(targetUserIdStr);
+                    Integer.parseInt(targetUserIdStr); // Valida ID (RNF 4.1)
                 } catch (NumberFormatException e) {
-                    enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
+                    enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
                 }
 

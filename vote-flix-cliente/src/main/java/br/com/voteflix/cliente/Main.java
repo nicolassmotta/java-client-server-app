@@ -14,14 +14,13 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         SceneManager sceneManager = new SceneManager(primaryStage);
-        sceneManager.mostrarTelaConexao(); // A aplicação começa pela tela de conexão
+        sceneManager.mostrarTelaConexao();
 
         primaryStage.show();
 
-        // Garante que a conexão seja fechada ao sair
         primaryStage.setOnCloseRequest(e -> {
             if (ClienteSocket.getInstance() != null) {
-                ClienteSocket.getInstance().fecharConexao();
+                ClienteSocket.getInstance().solicitarLogoutEFechamento(null);
             }
         });
     }

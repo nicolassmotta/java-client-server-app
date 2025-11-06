@@ -3,9 +3,6 @@ package br.com.voteflix.cliente.net;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Classe utilitária para validar códigos de status retornados pelo servidor.
- */
 public class StatusMensagem {
 
     // Usamos um Set estático para armazenar os códigos de status conhecidos.
@@ -30,26 +27,7 @@ public class StatusMensagem {
         statusConhecidos.add("500"); // Uma falha inesperada no servidor ou no banco de dados impede que a lista seja retornada.
     }
 
-    /**
-     * Verifica se um código de status é conhecido pelo cliente.
-     * @param status O código de status (ex: "401")
-     * @return true se o código é conhecido, false caso contrário.
-     */
     public static boolean isStatusValido(String status) {
         return statusConhecidos.contains(status);
-    }
-
-    /**
-     * Retorna uma mensagem genérica caso o status não seja validado
-     * ou não haja mensagem do servidor.
-     * @param status O código de status recebido.
-     * @return Uma mensagem de erro padrão.
-     */
-    public static String getMensagemPadraoErro(String status) {
-        if (!isStatusValido(status)) {
-            return "Erro desconhecido ou inesperado retornado pelo servidor (Status: " + status + ")";
-        }
-        // Se o status é válido mas o servidor não enviou mensagem (pouco provável)
-        return "Ocorreu um erro. Status: " + status;
     }
 }

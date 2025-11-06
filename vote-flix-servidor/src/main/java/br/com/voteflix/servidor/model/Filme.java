@@ -1,25 +1,27 @@
+// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/model/Filme.java
 package br.com.voteflix.servidor.model;
 
 import java.util.List;
 
 public class Filme {
 
-    private int id;
+    // CORRIGIDO: RNF 7.10 - Todos os campos são String
+    private String id;
     private String titulo;
     private String diretor;
-    private int ano;
+    private String ano;
     private String sinopse;
     private List<String> genero;
-    private double nota;
-    private int qtdAvaliacoes;
+    private String nota;
+    private String qtdAvaliacoes;
 
     // Getters e Setters
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -39,11 +41,11 @@ public class Filme {
         this.diretor = diretor;
     }
 
-    public int getAno() {
+    public String getAno() {
         return ano;
     }
 
-    public void setAno(int ano) {
+    public void setAno(String ano) {
         this.ano = ano;
     }
 
@@ -63,19 +65,19 @@ public class Filme {
         this.genero = genero;
     }
 
-    public double getNota() {
+    public String getNota() {
         return nota;
     }
 
-    public void setNota(double nota) {
+    public void setNota(String nota) {
         this.nota = nota;
     }
 
-    public int getQtdAvaliacoes() {
+    public String getQtdAvaliacoes() {
         return qtdAvaliacoes;
     }
 
-    public void setQtdAvaliacoes(int qtdAvaliacoes) {
+    public void setQtdAvaliacoes(String qtdAvaliacoes) {
         this.qtdAvaliacoes = qtdAvaliacoes;
     }
 }
