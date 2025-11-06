@@ -58,9 +58,6 @@ public class TelaMenu {
                             if (dados.isJsonPrimitive() && dados.getAsJsonPrimitive().isString()) {
                                 login = dados.getAsString();
                             }
-                            else if (dados.isJsonObject() && dados.getAsJsonObject().has("usuario_login")) {
-                                login = dados.getAsJsonObject().get("usuario_login").getAsString();
-                            }
 
                             if (login != null) {
                                 Dialog<Void> dialog = new Dialog<>();

@@ -194,8 +194,8 @@ public class ClienteSocket {
     public void enviarLogin(String login, String senha, BiConsumer<Boolean, String> callback) {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "LOGIN");
-        request.addProperty("usuario_login", login);
-        request.addProperty("usuario_senha", senha);
+        request.addProperty("usuario", login);
+        request.addProperty("senha", senha);
 
         enviarRequisicao(request, response -> {
             if (response == null) {
@@ -232,14 +232,13 @@ public class ClienteSocket {
         });
     }
 
-
     public void enviarCadastro(String login, String senha, BiConsumer<Boolean, String> callback) {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "CRIAR_USUARIO");
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("usuario_login", login);
-        usuario.addProperty("usuario_senha", senha);
-        request.add("usuario_dados", usuario);
+        usuario.addProperty("nome", login);
+        usuario.addProperty("senha", senha);
+        request.add("usuario", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "201", callback);
@@ -250,16 +249,16 @@ public class ClienteSocket {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "LISTAR_PROPRIO_USUARIO");
         enviarRequisicao(request, response -> {
-            processarRespostaComDados(response, "usuario_login", callback);
+            processarRespostaComDados(response, "usuario", callback);
         });
     }
 
-    public void enviarEdicaoUsuario(String novaSenha, BiConsumer<Boolean, String> callback) {
+    public void enviarEdicaoUsuario(String senha, BiConsumer<Boolean, String> callback) {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "EDITAR_PROPRIO_USUARIO");
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("nova_senha", novaSenha);
-        request.add("usuario_dados", usuario);
+        usuario.addProperty("senha", senha);
+        request.add("usuario", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "200", callback);
@@ -459,14 +458,14 @@ public class ClienteSocket {
         });
     }
 
-    public void adminEditarUsuario(String idUsuario, String novaSenha, BiConsumer<Boolean, String> callback) {
+    public void adminEditarUsuario(String idUsuario, String senha, BiConsumer<Boolean, String> callback) {
         JsonObject request = new JsonObject();
         request.addProperty("operacao", "ADMIN_EDITAR_USUARIO");
         request.addProperty("id", idUsuario);
 
         JsonObject usuario = new JsonObject();
-        usuario.addProperty("nova_senha", novaSenha);
-        request.add("usuario_dados", usuario);
+        usuario.addProperty("senha", senha);
+        request.add("usuario", usuario);
 
         enviarRequisicao(request, response -> {
             processarRespostaSimples(response, "200", callback);

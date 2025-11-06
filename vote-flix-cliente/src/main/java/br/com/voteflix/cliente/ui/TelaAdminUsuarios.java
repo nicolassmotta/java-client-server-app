@@ -65,11 +65,6 @@ public class TelaAdminUsuarios {
                 AlertaUtil.mostrarErro("Erro", "Selecione um usuário para editar a senha.");
                 return;
             }
-            if ("admin".equals(selecionado.nome)) {
-                AlertaUtil.mostrarErro("Aviso", "A senha do usuário 'admin' não pode ser alterada por aqui.");
-                return;
-            }
-
 
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Editar Senha");
@@ -93,10 +88,6 @@ public class TelaAdminUsuarios {
             UsuarioItem selecionado = listaUsuariosView.getSelectionModel().getSelectedItem();
             if (selecionado == null) {
                 AlertaUtil.mostrarErro("Erro", "Selecione um usuário para excluir.");
-                return;
-            }
-            if ("admin".equals(selecionado.nome)) {
-                AlertaUtil.mostrarErro("Erro", "Você não pode excluir o usuário 'admin'.");
                 return;
             }
 

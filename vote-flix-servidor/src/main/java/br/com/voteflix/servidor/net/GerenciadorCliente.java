@@ -28,9 +28,7 @@ public class GerenciadorCliente implements Runnable {
 
     private final Socket socketCliente;
     private final Consumer<String> logger;
-    private final Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .create();
+    private final Gson gson = new Gson();
     private PrintWriter saida;
     private BufferedReader entrada;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
@@ -298,21 +296,21 @@ public class GerenciadorCliente implements Runnable {
 
     private void processarCadastro(JsonObject jsonObject) {
         try {
-            if (!jsonObject.has("usuario_dados") || !jsonObject.get("usuario_dados").isJsonObject()) {
+            if (!jsonObject.has("usuario") || !jsonObject.get("usuario").isJsonObject()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
-            JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
-            if (!usuarioJson.has("usuario_login") || !usuarioJson.has("usuario_senha") ||
-                    !usuarioJson.get("usuario_login").isJsonPrimitive() || !usuarioJson.get("usuario_login").getAsJsonPrimitive().isString() ||
-                    !usuarioJson.get("usuario_senha").isJsonPrimitive() || !usuarioJson.get("usuario_senha").getAsJsonPrimitive().isString())
+            JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
+            if (!usuarioJson.has("nome") || !usuarioJson.has("senha") ||
+                    !usuarioJson.get("nome").isJsonPrimitive() || !usuarioJson.get("nome").getAsJsonPrimitive().isString() ||
+                    !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString())
             {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
 
-            String nome = usuarioJson.get("usuario_login").getAsString().trim();
-            String senha = usuarioJson.get("usuario_senha").getAsString();
+            String nome = usuarioJson.get("nome").getAsString().trim();
+            String senha = usuarioJson.get("senha").getAsString();
 
             if (nome.isEmpty() || senha.isEmpty()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -354,18 +352,25 @@ public class GerenciadorCliente implements Runnable {
 
     private void processarLogin(JsonObject jsonObject) {
         try {
-            if (!jsonObject.has("usuario_login") || !jsonObject.has("usuario_senha") ||
-                    !jsonObject.get("usuario_login").isJsonPrimitive() || !jsonObject.get("usuario_senha").isJsonPrimitive())
+            if (!jsonObject.has("usuario") || !jsonObject.has("senha") ||
+                    !jsonObject.get("usuario").isJsonPrimitive() || !jsonObject.get("senha").isJsonPrimitive())
             {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                 return;
             }
 
-            String usuario = jsonObject.get("usuario_login").getAsString();
-            String senha = jsonObject.get("usuario_senha").getAsString();
+            String usuario = jsonObject.get("usuario").getAsString();
+            String senha = jsonObject.get("senha").getAsString();
 
             if (usuario.trim().isEmpty() || senha.trim().isEmpty()) {
                 enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
+                return;
+            }
+
+            // Adicionando a validação 405 que estava faltando
+            if (usuario.length() < 3 || usuario.length() > 20 || !usuario.matches("^[a-zA-Z0-9]+$") ||
+                    senha.length() < 3 || senha.length() > 20 || !senha.matches("^[a-zA-Z0-9]+$")) {
+                enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                 return;
             }
 
@@ -390,7 +395,7 @@ public class GerenciadorCliente implements Runnable {
                 enviarErroComMensagem(403, "Erro: Sem permissão.");
             }
         } catch (Exception e) {
-            logger.accept("Erro inesperado durante o login para usuário '" + (jsonObject.has("usuario_login") ? jsonObject.get("usuario_login").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
+            logger.accept("Erro inesperado durante o login para usuário '" + (jsonObject.has("usuario") ? jsonObject.get("usuario").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
             enviarErroComMensagem(500, "Erro: Falha interna do servidor");
         }
     }
@@ -417,7 +422,7 @@ public class GerenciadorCliente implements Runnable {
                     JsonObject resposta = new JsonObject();
                     resposta.addProperty("status", "200");
                     resposta.addProperty("mensagem", "Sucesso: operação realizada com sucesso");
-                    resposta.addProperty("usuario_login", loginRetornado);
+                    resposta.addProperty("usuario", loginRetornado);
 
                     enviarResposta(resposta);
 
@@ -445,16 +450,17 @@ public class GerenciadorCliente implements Runnable {
                     return;
                 }
 
-                if (!jsonObject.has("usuario_dados") || !jsonObject.get("usuario_dados").isJsonObject()) {
+                if (!jsonObject.has("usuario") || !jsonObject.get("usuario").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
-                if (!usuarioJson.has("nova_senha") || !usuarioJson.get("nova_senha").isJsonPrimitive() || !usuarioJson.get("nova_senha").getAsJsonPrimitive().isString()) {
+                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
+
+                if (!usuarioJson.has("senha") || !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                String novaSenha = usuarioJson.get("nova_senha").getAsString();
+                String novaSenha = usuarioJson.get("senha").getAsString();
 
                 if (novaSenha.isEmpty()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -1087,20 +1093,20 @@ public class GerenciadorCliente implements Runnable {
             }
 
             try {
-                if (!jsonObject.has("id") || !jsonObject.has("usuario_dados") ||
+                if (!jsonObject.has("id") || !jsonObject.has("usuario") ||
                         !jsonObject.get("id").isJsonPrimitive() || !jsonObject.get("id").getAsJsonPrimitive().isString() ||
-                        !jsonObject.get("usuario_dados").isJsonObject()) {
+                        !jsonObject.get("usuario").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 String targetUserId = jsonObject.get("id").getAsString();
-                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario_dados");
+                JsonObject usuarioJson = jsonObject.getAsJsonObject("usuario");
 
-                if (!usuarioJson.has("nova_senha") || !usuarioJson.get("nova_senha").isJsonPrimitive() || !usuarioJson.get("nova_senha").getAsJsonPrimitive().isString()) {
+                if (!usuarioJson.has("senha") || !usuarioJson.get("senha").isJsonPrimitive() || !usuarioJson.get("senha").getAsJsonPrimitive().isString()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                String novaSenha = usuarioJson.get("nova_senha").getAsString();
+                String novaSenha = usuarioJson.get("senha").getAsString();
 
                 try {
                     Integer.parseInt(targetUserId);
