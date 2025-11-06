@@ -1,4 +1,3 @@
-// vote-flix-cliente/src/main/java/br/com/voteflix/cliente/ui/TelaMenu.java
 package br.com.voteflix.cliente.ui;
 
 import br.com.voteflix.cliente.net.ClienteSocket;
@@ -59,7 +58,6 @@ public class TelaMenu {
                             if (dados.isJsonPrimitive() && dados.getAsJsonPrimitive().isString()) {
                                 login = dados.getAsString();
                             }
-                            // CORRIGIDO: RNF 7.6
                             else if (dados.isJsonObject() && dados.getAsJsonObject().has("usuario_login")) {
                                 login = dados.getAsJsonObject().get("usuario_login").getAsString();
                             }
@@ -123,11 +121,9 @@ public class TelaMenu {
                     Platform.runLater(() -> {
                         if (sucesso) {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagem);
-                            // O servidor agora força a desconexão, apenas mudamos a tela
-                            sceneManager.mostrarTelaConexao(); // Volta para conexão após sucesso
+                            sceneManager.mostrarTelaConexao();
                         } else {
                             AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
-                            // Se falhou mas o servidor pode ter desconectado, volta pra conexão
                             sceneManager.mostrarTelaConexao();
                         }
                     });
@@ -138,15 +134,12 @@ public class TelaMenu {
         logoutButton.setOnAction(e -> {
             ClienteSocket socket = ClienteSocket.getInstance();
             if (socket != null) {
-                // Chama o novo método que envia LOGOUT e, no callback, muda a tela
                 socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
             } else {
-                // Se o socket já for nulo, apenas limpa o token e muda a tela
                 TokenStorage.clearToken();
                 sceneManager.mostrarTelaConexao();
             }
         });
-
 
         layout.getChildren().addAll(
                 titleLabel,

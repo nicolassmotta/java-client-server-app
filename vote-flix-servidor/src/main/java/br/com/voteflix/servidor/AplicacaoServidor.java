@@ -67,7 +67,7 @@ public class AplicacaoServidor extends Application {
         raiz.setCenter(painelDividido);
 
         Scene cena = new Scene(raiz, 800, 600);
-        cena.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm()); // Adicione esta linha
+        cena.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         palcoPrincipal.setScene(cena);
     }
 

@@ -39,7 +39,6 @@ public class TelaMinhasReviews {
 
         @Override
         public String toString() {
-            // Exibição simplificada sem o título do filme
             return "\"" + tituloReview + "\" (Nota: " + nota + ")";
         }
     }
@@ -69,10 +68,10 @@ public class TelaMinhasReviews {
         ComboBox<Integer> cbNota = new ComboBox<>();
         cbNota.getItems().addAll(1, 2, 3, 4, 5);
         try {
-            cbNota.setValue(Integer.parseInt(reviewExistente.nota)); // Preenche a nota atual
+            cbNota.setValue(Integer.parseInt(reviewExistente.nota));
         } catch (NumberFormatException e) {
             System.err.println("Nota inválida no ReviewItem: " + reviewExistente.nota);
-            cbNota.getSelectionModel().selectFirst(); // Seleciona a primeira nota como fallback
+            cbNota.getSelectionModel().selectFirst();
         }
         cbNota.setPromptText("Nota (1-5)");
 
@@ -90,14 +89,13 @@ public class TelaMinhasReviews {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == salvarButtonType) {
-                // Validações
                 String titulo = txtTitulo.getText().trim();
                 String descricao = txtDescricao.getText().trim();
                 Integer nota = cbNota.getValue();
 
                 if (titulo.isEmpty() || nota == null || descricao.isEmpty()) {
                     AlertaUtil.mostrarErro("Erro de Validação", "Todos os campos são obrigatórios.");
-                    return null; // Mantém o dialog aberto
+                    return null;
                 }
                 if (titulo.length() > 50) {
                     AlertaUtil.mostrarErro("Erro de Validação", "O título excede o limite de 50 caracteres.");
@@ -107,11 +105,10 @@ public class TelaMinhasReviews {
                     AlertaUtil.mostrarErro("Erro de Validação", "A descrição excede o limite de 250 caracteres.");
                     return null;
                 }
-
                 JsonObject reviewJson = new JsonObject();
-                reviewJson.addProperty("id", reviewExistente.id); // ID da review sendo editada
+                reviewJson.addProperty("id", reviewExistente.id);
                 reviewJson.addProperty("titulo", titulo);
-                reviewJson.addProperty("nota", nota.toString()); // Envia nota como String
+                reviewJson.addProperty("nota", nota.toString());
                 reviewJson.addProperty("descricao", descricao);
                 return reviewJson;
             }
@@ -129,22 +126,17 @@ public class TelaMinhasReviews {
         Label titleLabel = new Label("Minhas Avaliações");
         VBox.setVgrow(listaReviewsView, Priority.ALWAYS);
         listaReviewsView.setPlaceholder(new Label("Você ainda não fez nenhuma review."));
-
-        // --- NOVA CÉLULA CUSTOMIZADA ---
         listaReviewsView.setCellFactory(param -> new ListCell<ReviewItem>() {
             private VBox content = new VBox(5);
             private Label lblTitulo = new Label();
             private Label lblDescricao = new Label();
 
             {
-                // *** MUDANÇA AQUI: Usando classes CSS ***
                 lblTitulo.getStyleClass().add("list-cell-review-titulo");
                 lblDescricao.getStyleClass().add("list-cell-review-desc");
-                // *** FIM DA MUDANÇA ***
-
                 lblDescricao.setWrapText(true);
                 content.getChildren().addAll(lblTitulo, lblDescricao);
-                content.setPadding(new Insets(5)); // Espaçamento interno da célula
+                content.setPadding(new Insets(5));
             }
 
             @Override
@@ -154,7 +146,6 @@ public class TelaMinhasReviews {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    // Preenche os labels com os dados do ReviewItem
                     lblTitulo.setText(item.tituloReview + " (Nota: " + item.nota + ")");
                     lblDescricao.setText("\"" + item.descricao + "\"");
                     setGraphic(content);
@@ -192,10 +183,10 @@ public class TelaMinhasReviews {
                 ClienteSocket.getInstance().enviarEditarReview(idReview, titulo, descricao, nota, (sucesso, mensagem) -> {
                     Platform.runLater(() -> {
                         if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Sucesso", mensagem); // Mantém o alerta para confirmação de EDIÇÃO
-                            carregarMinhasReviews(); // Atualiza a lista
+                            AlertaUtil.mostrarInformacao("Sucesso", mensagem);
+                            carregarMinhasReviews();
                         } else {
-                            AlertaUtil.mostrarErro("Erro ao Editar", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarErro("Erro ao Editar", mensagem);
                         }
                     });
                 });
@@ -214,19 +205,18 @@ public class TelaMinhasReviews {
                 ClienteSocket.getInstance().enviarExcluirReview(selecionada.id, (sucesso, mensagem) -> {
                     Platform.runLater(() -> {
                         if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Sucesso", mensagem); // Mantém o alerta para confirmação de EXCLUSÃO
-                            carregarMinhasReviews(); // Atualiza a lista
+                            AlertaUtil.mostrarInformacao("Sucesso", mensagem);
+                            carregarMinhasReviews();
                         } else {
-                            AlertaUtil.mostrarErro("Erro ao Excluir", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
                         }
                     });
                 });
             }
         });
 
-        // Layout
         layout.getChildren().addAll(titleLabel, listaReviewsView, crudButtons, btnVoltar);
-        Scene scene = new Scene(layout, 800, 600); // Tamanho padronizado
+        Scene scene = new Scene(layout, 800, 600);
 
         URL cssResource = getClass().getResource("/styles.css");
         if (cssResource != null) {
@@ -237,14 +227,14 @@ public class TelaMinhasReviews {
             System.err.println("Recurso 'styles.css' não encontrado.");
         }
 
-        carregarMinhasReviews(); // Carrega os dados ao criar a cena
+        carregarMinhasReviews();
         return scene;
     }
 
     private void carregarMinhasReviews() {
         ClienteSocket.getInstance().enviarListarReviewsUsuario((sucesso, dados, mensagem) -> {
             Platform.runLater(() -> {
-                listaReviewsView.getItems().clear(); // Limpa a lista
+                listaReviewsView.getItems().clear();
                 if (sucesso) {
                     if (dados != null && dados.isJsonArray() && !dados.getAsJsonArray().isEmpty()) {
                         JsonArray reviewsArray = dados.getAsJsonArray();
@@ -266,12 +256,12 @@ public class TelaMinhasReviews {
                             }
                         }
                     } else if (dados == null || (dados.isJsonArray() && dados.getAsJsonArray().size() == 0) || (dados.isJsonObject() && dados.getAsJsonObject().size() == 0) ) {
-                        System.out.println("Nenhuma review encontrada para o usuário."); // Log opcional
+                        System.out.println("Nenhuma review encontrada para o usuário.");
                     } else {
-                        System.err.println("Resposta inesperada ao listar reviews: " + (dados != null ? dados.toString() : "null")); // Log de erro
+                        System.err.println("Resposta inesperada ao listar reviews: " + (dados != null ? dados.toString() : "null"));
                     }
                 } else {
-                    AlertaUtil.mostrarErro("Erro ao Carregar Reviews", mensagem); // Mensagem do servidor
+                    AlertaUtil.mostrarErro("Erro ao Carregar Reviews", mensagem);
                 }
             });
         });

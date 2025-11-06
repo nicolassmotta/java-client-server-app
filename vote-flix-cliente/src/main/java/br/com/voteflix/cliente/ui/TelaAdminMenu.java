@@ -42,15 +42,12 @@ public class TelaAdminMenu {
         logoutButton.setOnAction(e -> {
             ClienteSocket socket = ClienteSocket.getInstance();
             if (socket != null) {
-                // Chama o novo método que envia LOGOUT e, no callback, muda a tela
                 socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
             } else {
-                // Se o socket já for nulo, apenas limpa o token e muda a tela
                 TokenStorage.clearToken();
                 sceneManager.mostrarTelaConexao();
             }
         });
-
 
         layout.getChildren().addAll(
                 titleLabel,

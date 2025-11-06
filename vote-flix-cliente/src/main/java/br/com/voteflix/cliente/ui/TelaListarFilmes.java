@@ -30,7 +30,7 @@ public class TelaListarFilmes {
 
     private SceneManager sceneManager;
     private ListView<FilmeItem> listaFilmesView = new ListView<>();
-    private List<FilmeItem> masterList = new ArrayList<>(); // <-- NOVA
+    private List<FilmeItem> masterList = new ArrayList<>();
 
     private ComboBox<String> filtroGenero = new ComboBox<>();
     private Button btnAnterior = new Button("<< Anterior");
@@ -47,21 +47,19 @@ public class TelaListarFilmes {
             "Terror", "Romance", "Documentário", "Musical", "Animação"
     );
 
-
-    // Classe interna (agora com gêneros)
     private static class FilmeItem {
         String id;
         String titulo;
         String nota;
         String qtdAvaliacoes;
-        List<String> generos; // <-- NOVO CAMPO
+        List<String> generos;
 
         public FilmeItem(String id, String titulo, String nota, String qtdAvaliacoes, List<String> generos) {
             this.id = id;
             this.titulo = titulo;
             this.nota = nota;
             this.qtdAvaliacoes = qtdAvaliacoes;
-            this.generos = generos; // <-- NOVO CAMPO
+            this.generos = generos;
         }
     }
 
@@ -69,27 +67,23 @@ public class TelaListarFilmes {
         this.sceneManager = sceneManager;
     }
 
-    // --- DIALOG CRIAR REVIEW ---
-    // (Movido para cima para melhor organização)
     private Optional<JsonObject> abrirDialogCriarReview(String filmeId) {
         Dialog<JsonObject> dialog = new Dialog<>();
         dialog.setTitle("Avaliar Filme");
-        dialog.setHeaderText("Escreva sua avaliação para este filme"); // Header ajustado
+        dialog.setHeaderText("Escreva sua avaliação para este filme");
 
-        // Botões
         ButtonType criarButtonType = new ButtonType("Enviar Avaliação", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(criarButtonType, ButtonType.CANCEL);
 
-        // Layout do Dialog
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         TextField txtTitulo = new TextField();
-        txtTitulo.setPromptText("Título da sua avaliação (até 50 chars)"); // Limite adicionado
+        txtTitulo.setPromptText("Título da sua avaliação (até 50 chars)");
         TextArea txtDescricao = new TextArea();
-        txtDescricao.setPromptText("Sua opinião sobre o filme... (até 250 chars)"); // Limite adicionado
+        txtDescricao.setPromptText("Sua opinião sobre o filme... (até 250 chars)");
         txtDescricao.setWrapText(true);
         ComboBox<Integer> cbNota = new ComboBox<>();
         cbNota.getItems().addAll(1, 2, 3, 4, 5);
@@ -101,23 +95,21 @@ public class TelaListarFilmes {
         grid.add(cbNota, 1, 1);
         grid.add(new Label("Descrição:"), 0, 2);
         grid.add(txtDescricao, 1, 2);
-        GridPane.setVgrow(txtDescricao, Priority.ALWAYS); // Permite que a descrição cresça
+        GridPane.setVgrow(txtDescricao, Priority.ALWAYS);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefSize(400, 300); // Tamanho ajustado
+        dialog.getDialogPane().setPrefSize(400, 300);
         Platform.runLater(txtTitulo::requestFocus);
 
-        // Converte o resultado do dialog em um JsonObject
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == criarButtonType) {
-                // Validações
                 String titulo = txtTitulo.getText().trim();
                 String descricao = txtDescricao.getText().trim();
                 Integer nota = cbNota.getValue();
 
                 if (titulo.isEmpty() || nota == null || descricao.isEmpty()) {
                     AlertaUtil.mostrarErro("Erro de Validação", "Todos os campos são obrigatórios.");
-                    return null; // Mantém o dialog aberto
+                    return null;
                 }
                 if (titulo.length() > 50) {
                     AlertaUtil.mostrarErro("Erro de Validação", "O título excede o limite de 50 caracteres.");
@@ -131,18 +123,17 @@ public class TelaListarFilmes {
                 JsonObject reviewJson = new JsonObject();
                 reviewJson.addProperty("id_filme", filmeId);
                 reviewJson.addProperty("titulo", titulo);
-                reviewJson.addProperty("nota", nota.toString()); // Envia nota como String
+                reviewJson.addProperty("nota", nota.toString());
                 reviewJson.addProperty("descricao", descricao);
                 return reviewJson;
             }
-            return null; // Cancelar ou fechar
+            return null;
         });
 
         return dialog.showAndWait();
     }
 
     private void atualizarListaExibida() {
-        // 1. Aplicar Filtro
         List<FilmeItem> listaFiltrada = new ArrayList<>();
         String generoSelecionado = filtroGenero.getValue();
 
@@ -158,13 +149,11 @@ public class TelaListarFilmes {
             listaFilmesView.setPlaceholder(new Label("Nenhum filme encontrado para o gênero '" + generoSelecionado + "'."));
         }
 
-        // 2. Aplicar Paginação
         int totalPaginas = (int) Math.ceil((double) listaFiltrada.size() / ITENS_POR_PAGINA);
         if (totalPaginas == 0) {
-            totalPaginas = 1; // Sempre há pelo menos 1 página, mesmo que vazia
+            totalPaginas = 1;
         }
 
-        // Corrige a página atual se ela ficou fora dos limites (ex: filtro diminuiu o total)
         if (paginaAtual >= totalPaginas) {
             paginaAtual = totalPaginas - 1;
         }
@@ -172,12 +161,10 @@ public class TelaListarFilmes {
             paginaAtual = 0;
         }
 
-        // 3. Atualizar UI de Paginação
         lblPagina.setText("Página " + (paginaAtual + 1) + " de " + totalPaginas);
         btnAnterior.setDisable(paginaAtual == 0);
         btnProximo.setDisable(paginaAtual >= totalPaginas - 1);
 
-        // 4. Calcular sub-lista para exibir
         int inicio = paginaAtual * ITENS_POR_PAGINA;
         int fim = Math.min(inicio + ITENS_POR_PAGINA, listaFiltrada.size());
 
@@ -211,11 +198,8 @@ public class TelaListarFilmes {
             private Label lblInfo = new Label();
 
             {
-                // *** MUDANÇA AQUI: Usando classes CSS ***
                 lblTitulo.getStyleClass().add("list-cell-filme-titulo");
                 lblInfo.getStyleClass().add("list-cell-filme-info");
-                // *** FIM DA MUDANÇA ***
-
                 content.getChildren().addAll(lblTitulo, lblInfo);
                 content.setPadding(new Insets(5));
             }
@@ -276,7 +260,7 @@ public class TelaListarFilmes {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagem);
                             carregarFilmes();
                         } else {
-                            AlertaUtil.mostrarErro("Erro ao Criar Review", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarErro("Erro ao Criar Review", mensagem);
                         }
                     });
                 });
@@ -299,7 +283,7 @@ public class TelaListarFilmes {
                         {
                             JsonObject filme = respostaCompleta.getAsJsonObject("filme");
                             JsonArray reviews = respostaCompleta.getAsJsonArray("reviews");
-                            mostrarDialogDetalhes(filme, reviews); // Método de dialog separado
+                            mostrarDialogDetalhes(filme, reviews);
                         } else {
                             AlertaUtil.mostrarErro("Erro", "Resposta do servidor incompleta ao buscar detalhes.");
                         }
@@ -310,9 +294,8 @@ public class TelaListarFilmes {
             });
         });
 
-        // --- NOVOS HANDLERS DE PAGINAÇÃO/FILTRO ---
         filtroGenero.setOnAction(e -> {
-            paginaAtual = 0; // Reseta para a primeira página ao trocar o filtro
+            paginaAtual = 0;
             atualizarListaExibida();
         });
 
@@ -324,16 +307,13 @@ public class TelaListarFilmes {
         });
 
         btnProximo.setOnAction(e -> {
-            // A verificação de limite é feita em atualizarListaExibida()
             paginaAtual++;
             atualizarListaExibida();
         });
 
-        // Layout (Adiciona filtro e paginação)
         layout.getChildren().addAll(titleLabel, filtroGenero, listaFilmesView, painelPaginacao, actionButtons, btnVoltar);
         Scene scene = new Scene(layout, 800, 600);
 
-        // CSS
         URL cssResource = getClass().getResource("/styles.css");
         if (cssResource != null) {
             scene.getStylesheets().add(cssResource.toExternalForm());
@@ -342,28 +322,22 @@ public class TelaListarFilmes {
             btnVerDetalhes.getStyleClass().add("secondary-button");
         } else {
             System.err.println("Recurso 'styles.css' não encontrado.");
-            // Fallback style removido, pois o CSS deve ser encontrado
         }
-
-        carregarFilmes(); // Carrega os dados ao criar a cena
+        carregarFilmes();
         return scene;
     }
 
-    // Método para carregar a lista inicial de filmes
     private void carregarFilmes() {
-        masterList.clear(); // Limpa a lista mestre
-        listaFilmesView.getItems().clear(); // Limpa a exibição
-        paginaAtual = 0; // Reseta a página
+        masterList.clear();
+        listaFilmesView.getItems().clear();
+        paginaAtual = 0;
 
-        // Callback: (Boolean sucesso, JsonElement dados, String mensagem)
         ClienteSocket.getInstance().enviarListarFilmes((sucesso, dados, mensagem) -> {
             Platform.runLater(() -> {
                 if (sucesso) {
-                    if (dados != null && dados.isJsonArray() && dados.getAsJsonArray().size() > 0) {
+                    if (dados != null && dados.isJsonArray() && !dados.getAsJsonArray().isEmpty()) {
                         for (JsonElement filmeElement : dados.getAsJsonArray()) {
                             JsonObject obj = filmeElement.getAsJsonObject();
-
-                            // (Já implementado no Passo 4)
                             String nota = "0.0";
                             if (obj.has("nota") && !obj.get("nota").isJsonNull()) {
                                 nota = obj.get("nota").getAsString();
@@ -373,7 +347,6 @@ public class TelaListarFilmes {
                                 qtd = obj.get("qtd_avaliacoes").getAsString();
                             }
 
-                            // --- NOVO: Lendo Gêneros ---
                             List<String> generosDoFilme = new ArrayList<>();
                             if (obj.has("genero") && obj.get("genero").isJsonArray()) {
                                 JsonArray generosJson = obj.getAsJsonArray("genero");
@@ -381,22 +354,19 @@ public class TelaListarFilmes {
                                     generosDoFilme.add(genEl.getAsString());
                                 }
                             }
-                            // --- FIM: Lendo Gêneros ---
-
-                            // Adiciona na MASTER LIST, não na view
                             masterList.add(
                                     new FilmeItem(
                                             obj.get("id").getAsString(),
                                             obj.get("titulo").getAsString(),
                                             nota,
                                             qtd,
-                                            generosDoFilme // Passa a lista de gêneros
+                                            generosDoFilme
                                     )
                             );
                         }
                     }
                 } else {
-                    AlertaUtil.mostrarErro("Erro ao Carregar Filmes", mensagem); // Usa mensagem do servidor
+                    AlertaUtil.mostrarErro("Erro ao Carregar Filmes", mensagem);
                 }
                 atualizarListaExibida();
             });
@@ -422,7 +392,7 @@ public class TelaListarFilmes {
 
         if (filme.has("genero") && filme.get("genero").isJsonArray()) {
             JsonArray generosArray = filme.getAsJsonArray("genero");
-            if (generosArray.size() > 0) {
+            if (!generosArray.isEmpty()) {
                 StringBuilder generosStr = new StringBuilder();
                 for (int i = 0; i < generosArray.size(); i++) {
                     generosStr.append(generosArray.get(i).getAsString());
@@ -430,7 +400,7 @@ public class TelaListarFilmes {
                 }
                 gridInfo.add(new Label("Gêneros:"), 0, 2);
                 Label lblGeneros = new Label(generosStr.toString());
-                lblGeneros.setWrapText(true); // Permite quebra de linha
+                lblGeneros.setWrapText(true);
                 gridInfo.add(lblGeneros, 1, 2);
             }
         }
@@ -449,9 +419,7 @@ public class TelaListarFilmes {
         layoutDialog.getChildren().add(new Label("Avaliações (" + reviews.size() + "):"));
 
         VBox boxReviews = new VBox(10);
-        // *** MUDANÇA AQUI: Usando classe CSS ***
         boxReviews.getStyleClass().add("reviews-box");
-        // *** FIM DA MUDANÇA ***
 
         if (reviews.isEmpty()) {
             boxReviews.getChildren().add(new Label("Este filme ainda não possui avaliações."));
@@ -461,10 +429,10 @@ public class TelaListarFilmes {
                 JsonObject r = reviewEl.getAsJsonObject();
                 VBox reviewEntry = new VBox(2);
                 Label lblReviewTitulo = new Label(r.get("titulo").getAsString() + " (Nota: " + r.get("nota").getAsString() + ")");
-                lblReviewTitulo.getStyleClass().add("list-cell-review-titulo"); // Reutilizando classe
+                lblReviewTitulo.getStyleClass().add("list-cell-review-titulo");
 
                 Label lblReviewUser = new Label("Por: " + r.get("nome_usuario").getAsString());
-                lblReviewUser.getStyleClass().add("list-cell-filme-info"); // Reutilizando classe
+                lblReviewUser.getStyleClass().add("list-cell-filme-info");
 
                 Label lblReviewDesc = new Label("\"" + r.get("descricao").getAsString() + "\"");
                 lblReviewDesc.setWrapText(true);
@@ -478,17 +446,12 @@ public class TelaListarFilmes {
             }
         }
 
-        // Adiciona as reviews em um ScrollPane
         ScrollPane scrollPaneReviews = new ScrollPane(boxReviews);
         scrollPaneReviews.setFitToWidth(true);
-        scrollPaneReviews.setPrefHeight(200); // Altura máxima para a área de reviews
+        scrollPaneReviews.setPrefHeight(200);
         layoutDialog.getChildren().add(scrollPaneReviews);
-
-        // Define o conteúdo e o botão de fechar
         dialog.getDialogPane().setContent(layoutDialog);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-
-        // Ajusta o tamanho
         dialog.getDialogPane().setPrefSize(500, 600);
         dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 

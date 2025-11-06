@@ -1,9 +1,6 @@
 package br.com.voteflix.cliente.ui;
 
 import br.com.voteflix.cliente.net.ClienteSocket;
-// Importe AlertaUtil se ainda não estiver importado (necessário para os popups)
-import br.com.voteflix.cliente.ui.AlertaUtil;
-import br.com.voteflix.cliente.security.TokenStorage; // Mantido, embora não usado diretamente aqui após a mudança no ClienteSocket
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -56,16 +53,14 @@ public class TelaLogin {
             ClienteSocket.getInstance().enviarLogin(login, senha, (sucesso, mensagem) -> {
                 Platform.runLater(() -> {
                     if (sucesso) {
-                        // Exibe popup de sucesso ANTES de navegar
-                        AlertaUtil.mostrarInformacao("Login Bem-sucedido", mensagem); // Usa a mensagem do servidor
+                        AlertaUtil.mostrarInformacao("Login Bem-sucedido", mensagem);
                         if ("admin".equalsIgnoreCase(login)) {
                             sceneManager.mostrarTelaAdminMenu();
                         } else {
                             sceneManager.mostrarTelaMenu();
                         }
                     } else {
-                        // Exibe popup de erro
-                        AlertaUtil.mostrarErro("Falha no Login", mensagem); // Usa a mensagem de erro do servidor
+                        AlertaUtil.mostrarErro("Falha no Login", mensagem);
                     }
                 });
             });

@@ -19,10 +19,9 @@ public class TelaAdminUsuarios {
     private SceneManager sceneManager;
     private ListView<UsuarioItem> listaUsuariosView = new ListView<>();
 
-    // Classe interna para facilitar a exibição (mantida)
     private static class UsuarioItem {
         String id;
-        String nome; // Corresponde ao 'login' no servidor/DAO
+        String nome;
 
         public UsuarioItem(String id, String nome) {
             this.id = id;
@@ -58,18 +57,14 @@ public class TelaAdminUsuarios {
         Button btnVoltar = new Button("Voltar");
         btnVoltar.setPrefWidth(380);
 
-        // --- AÇÕES ---
-
         btnVoltar.setOnAction(e -> sceneManager.mostrarTelaAdminMenu());
 
-        // Ação Editar Senha
         btnEditarSenha.setOnAction(e -> {
             UsuarioItem selecionado = listaUsuariosView.getSelectionModel().getSelectedItem();
             if (selecionado == null) {
                 AlertaUtil.mostrarErro("Erro", "Selecione um usuário para editar a senha.");
                 return;
             }
-            // Não permitir editar a senha do admin por esta tela (opcional, mas recomendado)
             if ("admin".equals(selecionado.nome)) {
                 AlertaUtil.mostrarErro("Aviso", "A senha do usuário 'admin' não pode ser alterada por aqui.");
                 return;
@@ -82,94 +77,69 @@ public class TelaAdminUsuarios {
             dialog.setContentText("Nova Senha:");
 
             dialog.showAndWait().ifPresent(novaSenha -> {
-                if (novaSenha.trim().isEmpty()) {
-                    AlertaUtil.mostrarErro("Erro", "A nova senha não pode estar em branco.");
-                    return;
-                }
-                // Validação de senha no cliente
-                if (novaSenha.length() < 3 || novaSenha.length() > 20 || !novaSenha.matches("^[a-zA-Z0-9]+$")) {
-                    AlertaUtil.mostrarErro("Erro de Validação", "Senha inválida. Use 3-20 caracteres (apenas letras e números).");
-                    return;
-                }
-
-
-                // Callback: (Boolean sucesso, String mensagem)
                 ClienteSocket.getInstance().adminEditarUsuario(selecionado.id, novaSenha, (sucesso, mensagem) -> {
                     Platform.runLater(() -> {
                         if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Sucesso", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarInformacao("Sucesso", mensagem);
                         } else {
-                            AlertaUtil.mostrarErro("Erro na Edição", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarErro("Erro na Edição", mensagem);
                         }
-                        // Não recarrega a lista aqui, pois a senha não é visível
                     });
                 });
             });
         });
 
-        // Ação Excluir Usuário
         btnExcluir.setOnAction(e -> {
             UsuarioItem selecionado = listaUsuariosView.getSelectionModel().getSelectedItem();
             if (selecionado == null) {
                 AlertaUtil.mostrarErro("Erro", "Selecione um usuário para excluir.");
                 return;
             }
-            // Proibir exclusão do admin
             if ("admin".equals(selecionado.nome)) {
                 AlertaUtil.mostrarErro("Erro", "Você não pode excluir o usuário 'admin'.");
                 return;
             }
 
-            boolean confirmado = AlertaUtil.mostrarConfirmacao("Excluir Usuário", "Tem certeza que deseja excluir o usuário '" + selecionado.nome + "'? Esta ação também excluirá as reviews deste usuário."); // Mensagem atualizada
+            boolean confirmado = AlertaUtil.mostrarConfirmacao("Excluir Usuário", "Tem certeza que deseja excluir o usuário '" + selecionado.nome + "'? Esta ação também excluirá as reviews deste usuário.");
             if (confirmado) {
-                // Callback: (Boolean sucesso, String mensagem)
                 ClienteSocket.getInstance().adminExcluirUsuario(selecionado.id, (sucesso, mensagem) -> {
                     Platform.runLater(() -> {
                         if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Sucesso", mensagem); // Mensagem do servidor
-                            carregarUsuarios(); // Atualiza a lista após exclusão
+                            AlertaUtil.mostrarInformacao("Sucesso", mensagem);
+                            carregarUsuarios();
                         } else {
-                            AlertaUtil.mostrarErro("Erro ao Excluir", mensagem); // Mensagem do servidor
+                            AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
                         }
                     });
                 });
             }
         });
 
-        // Layout
         layout.getChildren().addAll(titleLabel, listaUsuariosView, crudButtons, btnVoltar);
         Scene scene = new Scene(layout, 800, 600);
 
-        // CSS
         URL cssResource = getClass().getResource("/styles.css");
         if (cssResource != null) {
             scene.getStylesheets().add(cssResource.toExternalForm());
             titleLabel.getStyleClass().add("title-label");
             btnVoltar.getStyleClass().add("secondary-button");
-            // Estilos opcionais para botões CRUD
-            // btnEditarSenha.getStyleClass().add("secondary-button");
-            // btnExcluir.getStyleClass().add("secondary-button");
         } else {
             System.err.println("Recurso 'styles.css' não encontrado.");
         }
 
-        carregarUsuarios(); // Carrega os dados ao criar a cena
+        carregarUsuarios();
         return scene;
     }
 
-    // Método para carregar a lista de usuários
     private void carregarUsuarios() {
-        // Callback: (Boolean sucesso, JsonElement dados, String mensagem)
         ClienteSocket.getInstance().adminListarUsuarios((sucesso, dados, mensagem) -> {
             Platform.runLater(() -> {
-                listaUsuariosView.getItems().clear(); // Limpa a lista
+                listaUsuariosView.getItems().clear();
                 if (sucesso) {
-                    // Verifica se 'dados' é um JsonArray não nulo e com elementos
                     if (dados != null && dados.isJsonArray() && dados.getAsJsonArray().size() > 0) {
                         for (JsonElement userElement : dados.getAsJsonArray()) {
                             JsonObject obj = userElement.getAsJsonObject();
-                            // O servidor retorna "id" e "login". Usamos "login" como "nome" no Item.
-                            if (obj.has("id") && obj.has("nome")) { // Verifica se as chaves existem
+                            if (obj.has("id") && obj.has("nome")) {
                                 listaUsuariosView.getItems().add(
                                         new UsuarioItem(obj.get("id").getAsString(), obj.get("nome").getAsString())
                                 );
@@ -178,13 +148,10 @@ public class TelaAdminUsuarios {
                             }
                         }
                     } else {
-                        // Caso de sucesso, mas sem usuários (além do admin talvez)
-                        // Usa a mensagem do servidor se disponível
                         AlertaUtil.mostrarInformacao("Usuários", mensagem != null ? mensagem : "Nenhum outro usuário encontrado.");
                     }
                 } else {
-                    // Caso de falha (erro 500, 403 etc.)
-                    AlertaUtil.mostrarErro("Erro ao Carregar Usuários", mensagem); // Mensagem do servidor
+                    AlertaUtil.mostrarErro("Erro ao Carregar Usuários", mensagem);
                 }
             });
         });

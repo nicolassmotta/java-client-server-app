@@ -1,4 +1,3 @@
-// vote-flix-cliente/src/main/java/br/com/voteflix/cliente/ui/TelaAdminFilmes.java
 package br.com.voteflix.cliente.ui;
 
 import br.com.voteflix.cliente.net.ClienteSocket;
@@ -26,7 +25,7 @@ public class TelaAdminFilmes {
 
     private SceneManager sceneManager;
     private ListView<FilmeItem> listaFilmesView = new ListView<>();
-    private List<FilmeItem> masterList = new ArrayList<>(); // <-- NOVA
+    private List<FilmeItem> masterList = new ArrayList<>();
 
     private ComboBox<String> filtroGenero = new ComboBox<>();
     private Button btnAnterior = new Button("<< Anterior");
@@ -83,13 +82,13 @@ public class TelaAdminFilmes {
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         TextField txtTitulo = new TextField();
-        txtTitulo.setPromptText("Título do filme (3-30 chars)"); // Dica mantida
+        txtTitulo.setPromptText("Título do filme (3-30 chars)");
         TextField txtDiretor = new TextField();
-        txtDiretor.setPromptText("Nome do diretor (3-30 chars)"); // Dica mantida
+        txtDiretor.setPromptText("Nome do diretor (3-30 chars)");
         TextField txtAno = new TextField();
-        txtAno.setPromptText("Ano de lançamento (3-4 dígitos)"); // Dica mantida
+        txtAno.setPromptText("Ano de lançamento (3-4 dígitos)");
         TextArea txtSinopse = new TextArea();
-        txtSinopse.setPromptText("Breve sinopse do filme (max 250 chars)"); // Dica mantida
+        txtSinopse.setPromptText("Breve sinopse do filme (max 250 chars)");
         txtSinopse.setWrapText(true);
 
         grid.add(new Label("Título:"), 0, 0);
@@ -100,7 +99,7 @@ public class TelaAdminFilmes {
         grid.add(txtAno, 1, 2);
         grid.add(new Label("Sinopse:"), 0, 3);
         grid.add(txtSinopse, 1, 3);
-        GridPane.setVgrow(txtSinopse, Priority.ALWAYS); // Permite crescer
+        GridPane.setVgrow(txtSinopse, Priority.ALWAYS);
 
         VBox generosBox = new VBox(5);
         generosBox.setPadding(new Insets(5));
@@ -142,7 +141,7 @@ public class TelaAdminFilmes {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == btnTipoSalvar) {
-                String titulo = txtTitulo.getText(); // Não usa trim()
+                String titulo = txtTitulo.getText();
                 String diretor = txtDiretor.getText();
                 String anoStr = txtAno.getText();
                 String sinopse = txtSinopse.getText();
@@ -151,13 +150,10 @@ public class TelaAdminFilmes {
                         .map(CheckBox::getText)
                         .collect(Collectors.toList());
 
-                // Validações de UI (não de negócio)
                 if (generosSelecionadosList.isEmpty()) {
                     AlertaUtil.mostrarErro("Erro de Validação", "Selecione pelo menos um gênero.");
                     return null;
                 }
-
-                // Validações de negócio REMOVIDAS
 
                 JsonObject filmeJson = new JsonObject();
                 if (modoEdicao) {
@@ -165,7 +161,7 @@ public class TelaAdminFilmes {
                 }
                 filmeJson.addProperty("titulo", titulo);
                 filmeJson.addProperty("diretor", diretor);
-                filmeJson.addProperty("ano", anoStr); // Envia como string
+                filmeJson.addProperty("ano", anoStr);
                 filmeJson.addProperty("sinopse", sinopse);
 
                 JsonArray generosJsonArray = new JsonArray();
@@ -232,7 +228,7 @@ public class TelaAdminFilmes {
         filtroGenero.getItems().add("Todos os Gêneros");
         filtroGenero.getItems().addAll(GENEROS_PRE_CADASTRADOS);
         filtroGenero.setValue("Todos os Gêneros");
-        filtroGenero.setPrefWidth(380); // Ajustado para 3 botões
+        filtroGenero.setPrefWidth(380);
 
         painelPaginacao = new HBox(10, btnAnterior, lblPagina, btnProximo);
         painelPaginacao.setAlignment(Pos.CENTER);
@@ -246,11 +242,8 @@ public class TelaAdminFilmes {
             private Label lblInfo = new Label();
 
             {
-                // *** MUDANÇA AQUI: Usando classes CSS ***
                 lblTitulo.getStyleClass().add("list-cell-filme-titulo");
                 lblInfo.getStyleClass().add("list-cell-filme-info");
-                // *** FIM DA MUDANÇA ***
-
                 content.getChildren().addAll(lblTitulo, lblInfo);
                 content.setPadding(new Insets(5));
             }
@@ -300,7 +293,7 @@ public class TelaAdminFilmes {
                     Platform.runLater(() -> {
                         if (sucesso) {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagem);
-                            carregarFilmes(); // Atualiza a lista
+                            carregarFilmes();
                         } else {
                             AlertaUtil.mostrarErro("Erro ao Criar", mensagem);
                         }
@@ -332,7 +325,7 @@ public class TelaAdminFilmes {
                     Platform.runLater(() -> {
                         if (sucessoEdicao) {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagemEdicao);
-                            carregarFilmes(); // Atualiza a lista
+                            carregarFilmes();
                         } else {
                             AlertaUtil.mostrarErro("Erro ao Editar", mensagemEdicao);
                         }
@@ -353,7 +346,7 @@ public class TelaAdminFilmes {
                     Platform.runLater(() -> {
                         if (sucesso) {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagem);
-                            carregarFilmes(); // Atualiza a lista
+                            carregarFilmes();
                         } else {
                             AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
                         }
@@ -363,7 +356,7 @@ public class TelaAdminFilmes {
         });
 
         filtroGenero.setOnAction(e -> {
-            paginaAtual = 0; // Reseta para a primeira página ao trocar o filtro
+            paginaAtual = 0;
             atualizarListaExibida();
         });
 

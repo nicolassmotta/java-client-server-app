@@ -11,51 +11,43 @@ public class GerenciadorUsuarios {
 
     private final ConcurrentMap<String, String> usuariosConectados = new ConcurrentHashMap<>();
     private final Consumer<Collection<String>> onUsuariosChanged;
-    // Mapa para associar userId a GerenciadorCliente (necessário para desconexão forçada)
     private final ConcurrentMap<String, GerenciadorCliente> clienteHandlers = new ConcurrentHashMap<>();
-
 
     public GerenciadorUsuarios(Consumer<Collection<String>> onUsuariosChanged) {
         this.onUsuariosChanged = onUsuariosChanged;
         notificarUI();
     }
 
-    // Modificado para aceitar o handler do cliente
     public void adicionar(String id, String login, GerenciadorCliente handler) {
         usuariosConectados.put(id, login);
-        clienteHandlers.put(id, handler); // Armazena a referência
+        clienteHandlers.put(id, handler);
         notificarUI();
     }
 
     public void remover(String id) {
         if (usuariosConectados.containsKey(id)) {
             usuariosConectados.remove(id);
-            clienteHandlers.remove(id); // Remove a referência
+            clienteHandlers.remove(id);
             notificarUI();
         }
     }
 
-    // Método adicionado
     public boolean contemUsuario(String id) {
         return usuariosConectados.containsKey(id);
     }
 
-    // Método adicionado (com lógica para desconectar)
     public void desconectarUsuarioPorId(String id) {
         GerenciadorCliente handler = clienteHandlers.get(id);
         if (handler != null) {
-            System.out.println("Forçando desconexão para usuário ID: " + id); // Log
-            handler.encerrarConexao(); // Chama o método para fechar a conexão do cliente
-            // A remoção dos mapas ocorrerá dentro do encerrarConexao via chamada a this.remover(id)
+            System.out.println("Forçando desconexão para usuário ID: " + id);
+            handler.encerrarConexao();
         } else {
-            System.out.println("Tentativa de desconectar usuário ID " + id + " falhou: Handler não encontrado."); // Log
-            // Mesmo se o handler não for encontrado (raro), remove dos usuários conectados
+            System.out.println("Tentativa de desconectar usuário ID " + id + " falhou: Handler não encontrado.");
             if (usuariosConectados.containsKey(id)) {
-                remover(id); // Garante a remoção da lista
+                remover(id);
             }
         }
     }
-
 
     private void notificarUI() {
         if (onUsuariosChanged != null) {

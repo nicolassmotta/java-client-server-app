@@ -30,11 +30,11 @@ public class TelaCadastro {
         Label titleLabel = new Label("Crie sua Conta");
 
         TextField loginField = new TextField();
-        loginField.setPromptText("Escolha um login (3-20 caracteres, letras/números)"); // Adicionada dica de validação
+        loginField.setPromptText("Escolha um login (3-20 caracteres, letras/números)");
         loginField.setMaxWidth(300);
 
         PasswordField senhaField = new PasswordField();
-        senhaField.setPromptText("Crie uma senha (3-20 caracteres, letras/números)"); // Adicionada dica de validação
+        senhaField.setPromptText("Crie uma senha (3-20 caracteres, letras/números)");
         senhaField.setMaxWidth(300);
 
         Button cadastrarButton = new Button("Cadastrar");
@@ -53,7 +53,7 @@ public class TelaCadastro {
             ClienteSocket.getInstance().enviarCadastro(login, senha, (sucesso, mensagem) -> {
                 Platform.runLater(() -> {
                     if (sucesso) {
-                        AlertaUtil.mostrarInformacao("Sucesso", mensagem); // Não concatena mais strings extras
+                        AlertaUtil.mostrarInformacao("Sucesso", mensagem);
                         sceneManager.mostrarTelaLogin();
                     } else {
                         AlertaUtil.mostrarErro("Falha no Cadastro", mensagem);

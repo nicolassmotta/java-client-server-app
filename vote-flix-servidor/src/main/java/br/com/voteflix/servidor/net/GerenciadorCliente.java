@@ -1,4 +1,3 @@
-// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/net/GerenciadorCliente.java
 package br.com.voteflix.servidor.net;
 
 import br.com.voteflix.servidor.dao.FilmeDAO;
@@ -78,7 +77,6 @@ public class GerenciadorCliente implements Runnable {
         }
     }
 
-    // Modificado para ser public (ou package-private) para ser chamado por GerenciadorUsuarios
     void encerrarConexao() {
         if (!executando) return;
 
@@ -87,8 +85,6 @@ public class GerenciadorCliente implements Runnable {
         String userIdentifier = loginLogado != null ? loginLogado : clientAddress;
 
         if (idUsuarioLogado != null) {
-            // A remoção agora acontece PRIMEIRO em GerenciadorUsuarios.desconectarUsuarioPorId
-            // ou aqui se a desconexão for por outro motivo (erro, readLine nulo, etc.)
             if (gerenciadorUsuarios.contemUsuario(idUsuarioLogado)) {
                 gerenciadorUsuarios.remover(idUsuarioLogado);
                 logger.accept("Usuário '" + loginLogado + "' removido da lista de ativos (Desconexão direta/Erro).");
@@ -272,11 +268,11 @@ public class GerenciadorCliente implements Runnable {
                     this.idUsuarioLogado = tokenId;
                     this.loginLogado = tokenSubject;
                     if (!gerenciadorUsuarios.contemUsuario(this.idUsuarioLogado)) {
-                        gerenciadorUsuarios.adicionar(this.idUsuarioLogado, this.loginLogado, this); // Passa 'this' (GerenciadorCliente)
+                        gerenciadorUsuarios.adicionar(this.idUsuarioLogado, this.loginLogado, this);
                     }
                     logger.accept("Token validado e associado à conexão para '" + this.loginLogado + "'.");
                 }
-                else if (this.idUsuarioLogado != null && tokenId != null && !tokenId.equals(this.idUsuarioLogado)) { // Adicionado tokenId != null
+                else if (this.idUsuarioLogado != null && tokenId != null && !tokenId.equals(this.idUsuarioLogado)) {
                     logger.accept("ALERTA: Token com ID (" + tokenId + ") diferente do usuário logado (" + this.idUsuarioLogado + ") na mesma conexão. Desconectando.");
                     enviarErroComMensagem(401, "Erro: Token inválido");
                     encerrarConexao();
@@ -380,7 +376,7 @@ public class GerenciadorCliente implements Runnable {
                 this.loginLogado = dadosUsuario[1];
                 String funcao = dadosUsuario[2];
 
-                gerenciadorUsuarios.adicionar(this.idUsuarioLogado, this.loginLogado, this); // Passa 'this'
+                gerenciadorUsuarios.adicionar(this.idUsuarioLogado, this.loginLogado, this);
                 logger.accept("Operação LOGIN bem-sucedida para '" + this.loginLogado + "' (" + funcao + ").");
 
                 String token = UtilitarioJwt.gerarToken(this.idUsuarioLogado, this.loginLogado, funcao);
@@ -461,7 +457,7 @@ public class GerenciadorCliente implements Runnable {
                 String novaSenha = usuarioJson.get("nova_senha").getAsString();
 
                 if (novaSenha.isEmpty()) {
-                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas"); // Alterado de 405 para 422
+                    enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
                 if (novaSenha.length() < 3 || novaSenha.length() > 20 || !novaSenha.matches("^[a-zA-Z0-9]+$")) {
@@ -584,9 +580,8 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                // CORRIGIDO: RNF 7.10 - Recebe String
-                String filmeId = jsonObject.get("id_filme").getAsString();
 
+                String filmeId = jsonObject.get("id_filme").getAsString();
                 Filme filme = filmeDAO.obterFilmePorId(filmeId);
 
                 if (filme == null) {
@@ -647,7 +642,6 @@ public class GerenciadorCliente implements Runnable {
 
                 String titulo = reviewJson.get("titulo").getAsString().trim();
                 String descricao = reviewJson.get("descricao").getAsString().trim();
-                // CORRIGIDO: RNF 7.10 - Recebe Strings
                 String filmeId = reviewJson.get("id_filme").getAsString();
                 String nota = reviewJson.get("nota").getAsString();
                 String usuarioId = claims.get("id", String.class);
@@ -656,29 +650,27 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-
-                // Validações RNF 6.2, 6.4, 6.5
                 if (titulo.length() > 50 || descricao.length() > 250) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
                 try {
                     int notaInt = Integer.parseInt(nota);
-                    if (notaInt < 1 || notaInt > 5) { // RNF 5.6
+                    if (notaInt < 1 || notaInt > 5) {
                         throw new NumberFormatException();
                     }
-                    Integer.parseInt(filmeId); // Valida ID (RNF 4.1)
+                    Integer.parseInt(filmeId);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
 
                 Review review = new Review();
-                review.setId(usuarioId); // ID do usuário
+                review.setId(usuarioId);
                 review.setIdFilme(filmeId);
                 review.setTitulo(titulo);
                 review.setDescricao(descricao);
-                review.setNota(nota); // Passa String
+                review.setNota(nota);
 
                 if (reviewDAO.criarReview(review)) {
                     logger.accept("Review criada com sucesso para filme ID " + filmeId + " pelo usuário ID " + usuarioId);
@@ -706,7 +698,7 @@ public class GerenciadorCliente implements Runnable {
                 }
 
                 String userIdStr = claims.get("id", String.class);
-                int usuarioId = Integer.parseInt(userIdStr); // DAO.editarReview espera int para verificar permissão
+                int usuarioId = Integer.parseInt(userIdStr);
 
                 if (!jsonObject.has("review") || !jsonObject.get("review").isJsonObject()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -726,7 +718,6 @@ public class GerenciadorCliente implements Runnable {
 
                 String titulo = reviewJson.get("titulo").getAsString().trim();
                 String descricao = reviewJson.get("descricao").getAsString().trim();
-                // CORRIGIDO: RNF 7.10 - Recebe Strings
                 String reviewId = reviewJson.get("id").getAsString();
                 String nota = reviewJson.get("nota").getAsString();
 
@@ -734,28 +725,26 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-
-                // Validações RNF 6.2, 6.4, 6.5
                 if (titulo.length() > 50 || descricao.length() > 250) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
                 try {
                     int notaInt = Integer.parseInt(nota);
-                    if (notaInt < 1 || notaInt > 5) { // RNF 5.6
+                    if (notaInt < 1 || notaInt > 5) {
                         throw new NumberFormatException();
                     }
-                    Integer.parseInt(reviewId); // Valida ID (RNF 4.1)
+                    Integer.parseInt(reviewId);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
                     return;
                 }
 
                 Review review = new Review();
-                review.setId(reviewId); // Passa String
+                review.setId(reviewId);
                 review.setTitulo(titulo);
                 review.setDescricao(descricao);
-                review.setNota(nota); // Passa String
+                review.setNota(nota);
 
                 if (reviewDAO.editarReview(review, usuarioId)) {
                     enviarSucessoComMensagem(200, "Sucesso: operação realizada com sucesso");
@@ -777,17 +766,16 @@ public class GerenciadorCliente implements Runnable {
             try {
                 String userIdStr = claims.get("id", String.class);
                 String funcao = claims.get("funcao", String.class);
-                int usuarioId = Integer.parseInt(userIdStr); // DAO.excluirReview espera int
+                int usuarioId = Integer.parseInt(userIdStr);
 
                 if (!jsonObject.has("id") || !jsonObject.get("id").isJsonPrimitive()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                // CORRIGIDO: RNF 7.10 - Recebe String
                 String reviewId = jsonObject.get("id").getAsString();
 
                 try {
-                    Integer.parseInt(reviewId); // Valida ID (RNF 4.1)
+                    Integer.parseInt(reviewId);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
@@ -812,7 +800,7 @@ public class GerenciadorCliente implements Runnable {
         processarComAutenticacao(jsonObject, claims -> {
             try {
                 String userIdStr = claims.get("id", String.class);
-                int userId = Integer.parseInt(userIdStr); // DAO espera int
+                int userId = Integer.parseInt(userIdStr);
 
                 List<Review> reviews = reviewDAO.listarReviewsPorUsuario(userId);
 
@@ -874,7 +862,7 @@ public class GerenciadorCliente implements Runnable {
                 String diretor = filmeJson.get("diretor").getAsString().trim();
                 String sinopse = filmeJson.get("sinopse").getAsString().trim();
                 JsonArray generos = filmeJson.getAsJsonArray("genero");
-                String anoStr = filmeJson.get("ano").getAsString().trim(); // CORRIGIDO: usa trim()
+                String anoStr = filmeJson.get("ano").getAsString().trim();
 
                 if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty() || anoStr.isEmpty()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -884,8 +872,6 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-
-                // Validações RNF 5.1, 5.3, 5.5, 6.1 (Corrigidas no passo anterior)
                 if (titulo.length() < 3 || titulo.length() > 30) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos (título), verifique o tipo e quantidade de caracteres");
                     return;
@@ -903,11 +889,10 @@ public class GerenciadorCliente implements Runnable {
                     return;
                 }
 
-
                 Filme filme = new Filme();
                 filme.setTitulo(titulo);
                 filme.setDiretor(diretor);
-                filme.setAno(anoStr); // CORRIGIDO: RNF 7.10 - Passa String
+                filme.setAno(anoStr);
                 filme.setSinopse(sinopse);
 
                 int resultado = filmeDAO.criarFilme(filme, generos);
@@ -917,7 +902,6 @@ public class GerenciadorCliente implements Runnable {
                 } else if (resultado == FilmeDAO.ERRO_DUPLICADO) {
                     enviarErroComMensagem(409, "Erro: Recurso ja existe");
                 } else {
-                    // Cobre ERRO_SQL e ERRO_CONEXAO
                     enviarErroComMensagem(500, "Erro: Falha interna do servidor");
                 }
 
@@ -960,7 +944,7 @@ public class GerenciadorCliente implements Runnable {
                 String sinopse = filmeJson.get("sinopse").getAsString().trim();
                 JsonArray generos = filmeJson.getAsJsonArray("genero");
                 String filmeIdStr = filmeJson.get("id").getAsString();
-                String anoStr = filmeJson.get("ano").getAsString().trim(); // CORRIGIDO: usa trim()
+                String anoStr = filmeJson.get("ano").getAsString().trim();
 
                 if (titulo.isEmpty() || diretor.isEmpty() || sinopse.isEmpty() || anoStr.isEmpty() || filmeIdStr.isEmpty()) {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
@@ -970,8 +954,6 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-
-                // Validações RNF (Corrigidas no passo anterior)
                 if (titulo.length() < 3 || titulo.length() > 30) {
                     enviarErroComMensagem(405, "Erro: Campos inválidos (título), verifique o tipo e quantidade de caracteres");
                     return;
@@ -995,10 +977,10 @@ public class GerenciadorCliente implements Runnable {
 
 
                 Filme filme = new Filme();
-                filme.setId(filmeIdStr); // CORRIGIDO: RNF 7.10 - Passa String
+                filme.setId(filmeIdStr);
                 filme.setTitulo(titulo);
                 filme.setDiretor(diretor);
-                filme.setAno(anoStr); // CORRIGIDO: RNF 7.10 - Passa String
+                filme.setAno(anoStr);
                 filme.setSinopse(sinopse);
 
                 int resultado = filmeDAO.editarFilme(filme, generos);
@@ -1010,7 +992,6 @@ public class GerenciadorCliente implements Runnable {
                 } else if (resultado == FilmeDAO.ERRO_NAO_ENCONTRADO) {
                     enviarErroComMensagem(404, "Erro: Recurso inexistente");
                 } else {
-                    // Cobre ERRO_SQL e ERRO_CONEXAO
                     enviarErroComMensagem(500, "Erro: Falha interna do servidor");
                 }
 
@@ -1033,11 +1014,10 @@ public class GerenciadorCliente implements Runnable {
                     enviarErroComMensagem(422, "Erro: Chaves faltantes ou invalidas");
                     return;
                 }
-                // CORRIGIDO: RNF 7.10 - Recebe String
                 String filmeId = jsonObject.get("id").getAsString();
 
                 try {
-                    Integer.parseInt(filmeId); // Valida ID (RNF 4.1)
+                    Integer.parseInt(filmeId);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
@@ -1077,7 +1057,6 @@ public class GerenciadorCliente implements Runnable {
                     JsonArray usuariosJson = new JsonArray();
                     for (Usuario u : usuarios) {
                         JsonObject userObj = new JsonObject();
-                        // CORRIGIDO: RNF 7.10 - Envia ID como String
                         userObj.addProperty("id", String.valueOf(u.getId()));
                         userObj.addProperty("nome", u.getNome());
                         usuariosJson.add(userObj);
@@ -1124,7 +1103,7 @@ public class GerenciadorCliente implements Runnable {
                 String novaSenha = usuarioJson.get("nova_senha").getAsString();
 
                 try {
-                    Integer.parseInt(targetUserId); // Valida ID (RNF 4.1)
+                    Integer.parseInt(targetUserId);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;
@@ -1186,7 +1165,7 @@ public class GerenciadorCliente implements Runnable {
                 String targetUserIdStr = jsonObject.get("id").getAsString();
 
                 try {
-                    Integer.parseInt(targetUserIdStr); // Valida ID (RNF 4.1)
+                    Integer.parseInt(targetUserIdStr);
                 } catch (NumberFormatException e) {
                     enviarErroComMensagem(400, "Erro: O id fornecido não é válido");
                     return;

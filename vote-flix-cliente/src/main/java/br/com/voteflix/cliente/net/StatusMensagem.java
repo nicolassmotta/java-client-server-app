@@ -5,10 +5,8 @@ import java.util.Set;
 
 public class StatusMensagem {
 
-    // Usamos um Set estático para armazenar os códigos de status conhecidos.
     private static final Set<String> statusConhecidos = new HashSet<>();
 
-    // Bloco estático para inicializar o set
     static {
         // --- SUCESSO ---
         statusConhecidos.add("200"); // É uma resposta genérica para quando tudo correu bem.

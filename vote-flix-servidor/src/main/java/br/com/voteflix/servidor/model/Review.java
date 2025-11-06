@@ -1,11 +1,9 @@
-// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/model/Review.java
 package br.com.voteflix.servidor.model;
 
 import java.util.Date;
 
 public class Review {
 
-    // CORRIGIDO: RNF 7.10 - IDs e Nota são String
     private String id;
     private String idFilme;
     private String nomeUsuario;
@@ -13,8 +11,6 @@ public class Review {
     private String titulo;
     private String descricao;
     private Date data;
-
-    // Getters e Setters
 
     public String getId() { return id; }
 

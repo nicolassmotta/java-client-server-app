@@ -6,8 +6,6 @@ public class Usuario {
     private String nome;
     private String senha;
 
-    // Getters e Setters
-
     public int getId() {
         return id;
     }

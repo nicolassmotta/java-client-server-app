@@ -1,6 +1,6 @@
 package br.com.voteflix.cliente.ui;
 
-import javafx.scene.Scene; // Importe a classe Scene
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class SceneManager {
@@ -11,7 +11,6 @@ public class SceneManager {
         this.primaryStage = primaryStage;
     }
 
-    // Método auxiliar para trocar a cena mantendo a posição
     private void switchScene(Scene newScene, String title) {
         double currentX = primaryStage.getX();
         double currentY = primaryStage.getY();

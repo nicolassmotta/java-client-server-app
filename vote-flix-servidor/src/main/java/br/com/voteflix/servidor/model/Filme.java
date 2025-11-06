@@ -1,11 +1,9 @@
-// vote-flix-servidor/src/main/java/br/com/voteflix/servidor/model/Filme.java
 package br.com.voteflix.servidor.model;
 
 import java.util.List;
 
 public class Filme {
 
-    // CORRIGIDO: RNF 7.10 - Todos os campos são String
     private String id;
     private String titulo;
     private String diretor;
@@ -14,8 +12,6 @@ public class Filme {
     private List<String> genero;
     private String nota;
     private String qtdAvaliacoes;
-
-    // Getters e Setters
 
     public String getId() {
         return id;

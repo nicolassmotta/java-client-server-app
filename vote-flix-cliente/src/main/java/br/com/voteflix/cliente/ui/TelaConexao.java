@@ -27,7 +27,6 @@ public class TelaConexao {
         layout.setPadding(new Insets(30));
         layout.setAlignment(Pos.CENTER);
 
-        // Carregamento seguro da Logo
         InputStream logoStream = getClass().getResourceAsStream("/logo.jpg");
         if (logoStream != null) {
             ImageView logo = new ImageView(new Image(logoStream));
@@ -70,7 +69,6 @@ public class TelaConexao {
 
         Scene scene = new Scene(layout, 800, 600);
 
-        // Carregamento seguro do CSS
         URL cssResource = getClass().getResource("/styles.css");
         if (cssResource != null) {
             scene.getStylesheets().add(cssResource.toExternalForm());
@@ -78,7 +76,7 @@ public class TelaConexao {
             statusLabel.getStyleClass().add("status-label");
         } else {
             System.err.println("Recurso 'styles.css' não encontrado.");
-            layout.setStyle("-fx-background-color: #F0F0F0;"); // Fallback
+            layout.setStyle("-fx-background-color: #F0F0F0;");
         }
 
         return scene;
