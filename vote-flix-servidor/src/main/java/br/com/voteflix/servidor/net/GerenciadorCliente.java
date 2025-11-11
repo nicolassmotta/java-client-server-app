@@ -442,6 +442,13 @@ public class GerenciadorCliente implements Runnable {
         processarComAutenticacao(jsonObject, claims -> {
             try {
                 String userId = claims.get("id", String.class);
+                String subject = claims.getSubject();
+
+                if ("admin".equalsIgnoreCase(subject)) {
+                    logger.accept("Tentativa negada de 'admin' (ID: " + userId + ") de editar a própria senha via EDITAR_PROPRIO_USUARIO.");
+                    enviarErroComMensagem(403, "Erro: sem permissão");
+                    return;
+                }
                 try {
                     Integer.parseInt(userId);
                 } catch (NumberFormatException e) {

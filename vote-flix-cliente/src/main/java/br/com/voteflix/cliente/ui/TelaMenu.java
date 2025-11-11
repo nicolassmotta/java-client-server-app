@@ -118,11 +118,16 @@ public class TelaMenu {
                     Platform.runLater(() -> {
                         if (sucesso) {
                             AlertaUtil.mostrarInformacao("Sucesso", mensagem);
-                            sceneManager.mostrarTelaConexao();
                         } else {
                             AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
-                            sceneManager.mostrarTelaConexao();
                         }
+
+                        ClienteSocket socket = ClienteSocket.getInstance();
+                        if (socket != null) {
+                            socket.fecharConexaoLocalmente();
+                        }
+
+                        sceneManager.mostrarTelaConexao();
                     });
                 });
             }

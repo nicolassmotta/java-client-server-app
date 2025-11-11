@@ -481,4 +481,19 @@ public class ClienteSocket {
             processarRespostaSimples(response, "200", callback);
         });
     }
+
+    public void fecharConexaoLocalmente() {
+        try {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+                logger.accept("Conexão com o servidor fechada localmente.");
+            }
+        } catch (IOException e) {
+            logger.accept("Erro ao fechar conexão localmente: " + e.getMessage());
+        } finally {
+            TokenStorage.clearToken();
+            instance = null; // Esta é a linha mais importante
+            logger.accept("Instância do ClienteSocket limpa localmente.");
+        }
+    }
 }

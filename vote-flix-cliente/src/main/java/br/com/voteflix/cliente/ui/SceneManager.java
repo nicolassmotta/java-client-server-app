@@ -14,15 +14,28 @@ public class SceneManager {
     private void switchScene(Scene newScene, String title) {
         double currentX = primaryStage.getX();
         double currentY = primaryStage.getY();
+        double currentWidth = primaryStage.getWidth();
+        double currentHeight = primaryStage.getHeight();
+        boolean isMaximized = primaryStage.isMaximized();
 
         primaryStage.setScene(newScene);
         primaryStage.setTitle(title);
 
-        if (!Double.isNaN(currentX) && !Double.isNaN(currentY)) {
-            primaryStage.setX(currentX);
-            primaryStage.setY(currentY);
+        if (isMaximized) {
+            primaryStage.setMaximized(true);
         } else {
-            primaryStage.centerOnScreen();
+
+            if (!Double.isNaN(currentX) && !Double.isNaN(currentY)) {
+                primaryStage.setX(currentX);
+                primaryStage.setY(currentY);
+            } else {
+                primaryStage.centerOnScreen();
+            }
+
+            if (!Double.isNaN(currentWidth) && !Double.isNaN(currentHeight) && currentWidth > 0 && currentHeight > 0) {
+                primaryStage.setWidth(currentWidth);
+                primaryStage.setHeight(currentHeight);
+            }
         }
     }
 

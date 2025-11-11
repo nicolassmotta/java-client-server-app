@@ -150,11 +150,6 @@ public class TelaAdminFilmes {
                         .map(CheckBox::getText)
                         .collect(Collectors.toList());
 
-                if (generosSelecionadosList.isEmpty()) {
-                    AlertaUtil.mostrarErro("Erro de Validação", "Selecione pelo menos um gênero.");
-                    return null;
-                }
-
                 JsonObject filmeJson = new JsonObject();
                 if (modoEdicao) {
                     filmeJson.addProperty("id", filmeExistente.get("id").getAsString());
