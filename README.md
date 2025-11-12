@@ -5,7 +5,7 @@
 
 ## 📖 Visão Geral
 
-O VoteFlix é uma aplicação desktop completa que simula uma plataforma de avaliação de filmes, como o "IMDb" ou "Letterboxd". O projeto é construído inteiramente em Java e demonstra uma arquitetura **Cliente-Servidor** clássica.
+O VoteFlix é uma aplicação desktop completa que simula uma plataforma de avaliação de filmes, como o "IMDb" ou "Letterboxd". O projeto é construído inteiramente em Java e demonstra uma arquitetura **Cliente-Servidor**.
 
 A comunicação entre o cliente (interface gráfica) e o servidor (lógica de negócios) é realizada via **Sockets TCP**, e todas as informações são persistidas em um banco de dados MySQL. A autenticação de sessão é gerenciada usando **JSON Web Tokens (JWT)**.
 
