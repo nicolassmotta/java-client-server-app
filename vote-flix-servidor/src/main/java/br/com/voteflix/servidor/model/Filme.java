@@ -11,7 +11,7 @@ public class Filme {
     private String sinopse;
     private List<String> genero;
     private String nota;
-    private String qtdAvaliacoes;
+    private String qtd_Avaliacoes;
 
     public String getId() {
         return id;
@@ -70,10 +70,10 @@ public class Filme {
     }
 
     public String getQtdAvaliacoes() {
-        return qtdAvaliacoes;
+        return qtd_Avaliacoes;
     }
 
     public void setQtdAvaliacoes(String qtdAvaliacoes) {
-        this.qtdAvaliacoes = qtdAvaliacoes;
+        this.qtd_Avaliacoes = qtdAvaliacoes;
     }
 }
