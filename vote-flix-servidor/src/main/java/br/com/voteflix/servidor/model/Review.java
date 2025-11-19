@@ -5,12 +5,13 @@ import java.util.Date;
 public class Review {
 
     private String id;
-    private String idFilme;
-    private String nomeUsuario;
+    private String id_filme;
+    private String nome_usuario;
     private String nota;
     private String titulo;
     private String descricao;
     private Date data;
+    private String editado;
 
     public String getId() { return id; }
 
@@ -19,19 +20,19 @@ public class Review {
     }
 
     public String getIdFilme() {
-        return idFilme;
+        return id_filme;
     }
 
     public void setIdFilme(String idFilme) {
-        this.idFilme = idFilme;
+        this.id_filme = idFilme;
     }
 
     public String getNomeUsuario() {
-        return nomeUsuario;
+        return nome_usuario;
     }
 
     public void setNomeUsuario(String nomeUsuario) {
-        this.nomeUsuario = nomeUsuario;
+        this.nome_usuario = nomeUsuario;
     }
 
     public String getNota() {
