@@ -61,6 +61,11 @@ public class TelaMenu {
 
                             if (login != null) {
                                 Dialog<Void> dialog = new Dialog<>();
+
+                                if (getClass().getResource("/styles.css") != null) {
+                                    dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+                                }
+
                                 dialog.setTitle("Meus Dados");
                                 dialog.setHeaderText("Informações da Conta");
 
@@ -76,7 +81,10 @@ public class TelaMenu {
                                 grid.add(txtLogin, 1, 0);
 
                                 dialog.getDialogPane().setContent(grid);
-                                dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+                                ButtonType btnFechar = new ButtonType("Fechar", ButtonBar.ButtonData.CANCEL_CLOSE);
+                                dialog.getDialogPane().getButtonTypes().add(btnFechar);
+
                                 dialog.showAndWait();
                             } else {
                                 AlertaUtil.mostrarInformacao("Meus Dados", mensagem);
@@ -94,6 +102,11 @@ public class TelaMenu {
 
         editarButton.setOnAction(e -> {
             TextInputDialog dialog = new TextInputDialog();
+
+            if (getClass().getResource("/styles.css") != null) {
+                dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            }
+
             dialog.setTitle("Editar Senha");
             dialog.setHeaderText("Digite sua nova senha:");
             dialog.setContentText("Nova Senha:");

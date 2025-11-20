@@ -67,6 +67,11 @@ public class TelaAdminUsuarios {
             }
 
             TextInputDialog dialog = new TextInputDialog();
+
+            if (getClass().getResource("/styles.css") != null) {
+                dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            }
+
             dialog.setTitle("Editar Senha");
             dialog.setHeaderText("Editando usuário: " + selecionado.nome);
             dialog.setContentText("Nova Senha:");
