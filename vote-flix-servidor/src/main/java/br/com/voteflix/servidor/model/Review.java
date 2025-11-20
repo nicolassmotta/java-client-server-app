@@ -14,60 +14,26 @@ public class Review {
     private String editado;
 
     public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getIdFilme() { return id_filme; }
+    public void setIdFilme(String idFilme) { this.id_filme = idFilme; }
 
-    public String getIdFilme() {
-        return id_filme;
-    }
+    public String getNomeUsuario() { return nome_usuario; }
+    public void setNomeUsuario(String nomeUsuario) { this.nome_usuario = nomeUsuario; }
 
-    public void setIdFilme(String idFilme) {
-        this.id_filme = idFilme;
-    }
+    public String getNota() { return nota; }
+    public void setNota(String nota) { this.nota = nota; }
 
-    public String getNomeUsuario() {
-        return nome_usuario;
-    }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
 
-    public void setNomeUsuario(String nomeUsuario) {
-        this.nome_usuario = nomeUsuario;
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public String getNota() {
-        return nota;
-    }
-
-    public void setNota(String nota) {
-        this.nota = nota;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public Date getData() {
-        return data;
-    }
-
-    public void setData(Date data) {
-        this.data = data;
-    }
+    public Date getData() { return data; }
+    public void setData(Date data) { this.data = data; }
 
     public String getEditado() { return editado; }
-
     public void setEditado(String editado) { this.editado = editado; }
 }
