@@ -66,4 +66,8 @@ public class Review {
     public void setData(Date data) {
         this.data = data;
     }
+
+    public String getEditado() { return editado; }
+
+    public void setEditado(String editado) { this.editado = editado; }
 }

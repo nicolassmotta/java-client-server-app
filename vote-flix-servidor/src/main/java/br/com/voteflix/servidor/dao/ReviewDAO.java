@@ -140,6 +140,7 @@ public class ReviewDAO {
 
     public boolean editarReview(Review review, int usuarioId) {
         String sql = "UPDATE reviews SET titulo = ?, comentario = ?, nota = ?, editado = ? WHERE id = ? AND usuario_id = ?";
+
         Connection conn = null;
         try {
             conn = ConexaoBancoDados.obterConexao();
@@ -163,7 +164,7 @@ public class ReviewDAO {
                 pstmt.setString(1, review.getTitulo());
                 pstmt.setString(2, review.getDescricao());
                 pstmt.setInt(3, notaNova);
-                pstmt.setBoolean(4, true); // Define editado como TRUE
+                pstmt.setString(4, "true");
                 pstmt.setInt(5, Integer.parseInt(review.getId()));
                 pstmt.setInt(6, usuarioId);
                 affectedRows = pstmt.executeUpdate();
@@ -185,17 +186,16 @@ public class ReviewDAO {
                 return false;
             }
         } catch (SQLException | NumberFormatException e) {
-            System.err.println("Erro ao editar review: " + e.getMessage());
-            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { /* Ignora */ }
+            System.err.println("Erro de SQL ou Formato Numérico ao editar review: " + e.getMessage());
+            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { /* Ignora */}
             return false;
         } finally {
-            try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
+            try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */}
         }
     }
 
     public List<Review> listarReviewsPorFilme(String filmeId) {
         List<Review> reviews = new ArrayList<>();
-        // SQL atualizado com 'r.editado'
         String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data, r.editado " +
                 "FROM reviews r " +
                 "JOIN usuarios u ON r.usuario_id = u.id " +
@@ -207,7 +207,7 @@ public class ReviewDAO {
             pstmt.setInt(1, Integer.parseInt(filmeId));
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    reviews.add(mapearReview(rs)); // Usa o método auxiliar
+                    reviews.add(mapearReview(rs));
                 }
             }
         } catch (SQLException | NumberFormatException e) {
@@ -219,7 +219,6 @@ public class ReviewDAO {
 
     public List<Review> listarReviewsPorUsuario(int usuarioId) {
         List<Review> reviews = new ArrayList<>();
-        // SQL atualizado com 'r.editado'
         String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data, r.editado " +
                 "FROM reviews r " +
                 "JOIN usuarios u ON r.usuario_id = u.id " +
@@ -231,7 +230,7 @@ public class ReviewDAO {
             pstmt.setInt(1, usuarioId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    reviews.add(mapearReview(rs)); // Usa o método auxiliar
+                    reviews.add(mapearReview(rs));
                 }
             }
         } catch (SQLException e) {
@@ -243,7 +242,8 @@ public class ReviewDAO {
 
     public boolean criarReview(Review review) {
         String checkSql = "SELECT id FROM reviews WHERE usuario_id = ? AND filme_id = ?";
-        String insertSql = "INSERT INTO reviews (filme_id, usuario_id, titulo, comentario, nota, data) VALUES (?, ?, ?, ?, ?, NOW())";
+        String insertSql = "INSERT INTO reviews (filme_id, usuario_id, titulo, comentario, nota, data, editado) VALUES (?, ?, ?, ?, ?, NOW(), ?)";
+
         Connection conn = null;
 
         try {
@@ -276,6 +276,8 @@ public class ReviewDAO {
                 insertStmt.setString(3, review.getTitulo());
                 insertStmt.setString(4, review.getDescricao());
                 insertStmt.setInt(5, notaInt);
+                insertStmt.setString(6, "false");
+
                 affectedRows = insertStmt.executeUpdate();
             }
 
@@ -312,10 +314,8 @@ public class ReviewDAO {
         review.setTitulo(rs.getString("titulo"));
         review.setDescricao(rs.getString("descricao"));
         review.setData(rs.getTimestamp("data"));
-
-        // Lê o novo campo 'editado'. Se for nulo/false no banco, retorna "false"
-        boolean isEditado = rs.getBoolean("editado");
-        review.setEditado(String.valueOf(isEditado));
+        String editadoBanco = rs.getString("editado");
+        review.setEditado(editadoBanco != null ? editadoBanco : "false");
 
         return review;
     }
