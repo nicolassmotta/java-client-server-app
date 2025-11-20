@@ -28,7 +28,9 @@ public class GerenciadorCliente implements Runnable {
 
     private final Socket socketCliente;
     private final Consumer<String> logger;
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .setDateFormat("dd/MM/yyyy")
+            .create();
     private PrintWriter saida;
     private BufferedReader entrada;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();

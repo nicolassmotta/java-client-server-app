@@ -139,7 +139,7 @@ public class ReviewDAO {
     }
 
     public boolean editarReview(Review review, int usuarioId) {
-        String sql = "UPDATE reviews SET titulo = ?, comentario = ?, nota = ? WHERE id = ? AND usuario_id = ?";
+        String sql = "UPDATE reviews SET titulo = ?, comentario = ?, nota = ?, editado = ? WHERE id = ? AND usuario_id = ?";
         Connection conn = null;
         try {
             conn = ConexaoBancoDados.obterConexao();
@@ -163,8 +163,9 @@ public class ReviewDAO {
                 pstmt.setString(1, review.getTitulo());
                 pstmt.setString(2, review.getDescricao());
                 pstmt.setInt(3, notaNova);
-                pstmt.setInt(4, Integer.parseInt(review.getId()));
-                pstmt.setInt(5, usuarioId);
+                pstmt.setBoolean(4, true); // Define editado como TRUE
+                pstmt.setInt(5, Integer.parseInt(review.getId()));
+                pstmt.setInt(6, usuarioId);
                 affectedRows = pstmt.executeUpdate();
             }
 
@@ -180,21 +181,22 @@ public class ReviewDAO {
                 }
             } else {
                 conn.rollback();
-                System.err.println("Nenhuma linha afetada ao editar review ID " + review.getId() + " para usuário ID " + usuarioId);
+                System.err.println("Nenhuma linha afetada ao editar review ID " + review.getId());
                 return false;
             }
         } catch (SQLException | NumberFormatException e) {
-            System.err.println("Erro de SQL ou Formato Numérico ao editar review: " + e.getMessage());
-            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { /* Ignora */}
+            System.err.println("Erro ao editar review: " + e.getMessage());
+            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { /* Ignora */ }
             return false;
         } finally {
-            try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */}
+            try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */ }
         }
     }
 
     public List<Review> listarReviewsPorFilme(String filmeId) {
         List<Review> reviews = new ArrayList<>();
-        String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data " +
+        // SQL atualizado com 'r.editado'
+        String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data, r.editado " +
                 "FROM reviews r " +
                 "JOIN usuarios u ON r.usuario_id = u.id " +
                 "WHERE r.filme_id = ?";
@@ -205,15 +207,7 @@ public class ReviewDAO {
             pstmt.setInt(1, Integer.parseInt(filmeId));
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    Review review = new Review();
-                    review.setId(rs.getString("id"));
-                    review.setIdFilme(rs.getString("filme_id"));
-                    review.setNomeUsuario(rs.getString("nome_usuario"));
-                    review.setNota(rs.getString("nota"));
-                    review.setTitulo(rs.getString("titulo"));
-                    review.setDescricao(rs.getString("descricao"));
-                    review.setData(rs.getTimestamp("data"));
-                    reviews.add(review);
+                    reviews.add(mapearReview(rs)); // Usa o método auxiliar
                 }
             }
         } catch (SQLException | NumberFormatException e) {
@@ -223,10 +217,10 @@ public class ReviewDAO {
         return reviews;
     }
 
-
     public List<Review> listarReviewsPorUsuario(int usuarioId) {
         List<Review> reviews = new ArrayList<>();
-        String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data " +
+        // SQL atualizado com 'r.editado'
+        String sql = "SELECT r.id, r.filme_id, u.login AS nome_usuario, r.nota, r.titulo, r.comentario AS descricao, r.data, r.editado " +
                 "FROM reviews r " +
                 "JOIN usuarios u ON r.usuario_id = u.id " +
                 "WHERE r.usuario_id = ?";
@@ -237,15 +231,7 @@ public class ReviewDAO {
             pstmt.setInt(1, usuarioId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    Review review = new Review();
-                    review.setId(rs.getString("id"));
-                    review.setIdFilme(rs.getString("filme_id"));
-                    review.setNomeUsuario(rs.getString("nome_usuario"));
-                    review.setNota(rs.getString("nota"));
-                    review.setTitulo(rs.getString("titulo"));
-                    review.setDescricao(rs.getString("descricao"));
-                    review.setData(rs.getTimestamp("data"));
-                    reviews.add(review);
+                    reviews.add(mapearReview(rs)); // Usa o método auxiliar
                 }
             }
         } catch (SQLException e) {
@@ -315,5 +301,22 @@ public class ReviewDAO {
         } finally {
             try { if (conn != null) conn.close(); } catch (SQLException e) { /* Ignora */}
         }
+    }
+
+    private Review mapearReview(ResultSet rs) throws SQLException {
+        Review review = new Review();
+        review.setId(rs.getString("id"));
+        review.setIdFilme(rs.getString("filme_id"));
+        review.setNomeUsuario(rs.getString("nome_usuario"));
+        review.setNota(rs.getString("nota"));
+        review.setTitulo(rs.getString("titulo"));
+        review.setDescricao(rs.getString("descricao"));
+        review.setData(rs.getTimestamp("data"));
+
+        // Lê o novo campo 'editado'. Se for nulo/false no banco, retorna "false"
+        boolean isEditado = rs.getBoolean("editado");
+        review.setEditado(String.valueOf(isEditado));
+
+        return review;
     }
 }
