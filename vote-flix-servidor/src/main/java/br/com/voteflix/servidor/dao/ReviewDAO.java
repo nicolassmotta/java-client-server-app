@@ -40,7 +40,8 @@ public class ReviewDAO {
         return null;
     }
 
-    private boolean atualizarMediaFilme(Connection conn, int filmeId, int notaNova, int notaAntiga) throws SQLException {
+    // CORREÇÃO: Mudado de private para public e renomeado para recalcularMediaFilme
+    public boolean recalcularMediaFilme(Connection conn, int filmeId, int notaNova, int notaAntiga) throws SQLException {
         String selectFilmeSql = "SELECT nota_media_acumulada, total_avaliacoes FROM filmes WHERE id = ?";
         double oldAvg = 0.0;
         int oldCount = 0;
@@ -113,7 +114,8 @@ public class ReviewDAO {
                 int affected = pstmt.executeUpdate();
 
                 if (affected > 0) {
-                    if (atualizarMediaFilme(conn, filmeId, 0, notaAntiga)) {
+                    // CORREÇÃO: Chamada atualizada para recalcularMediaFilme
+                    if (recalcularMediaFilme(conn, filmeId, 0, notaAntiga)) {
                         conn.commit();
                         return RESULT_SUCESSO;
                     }
@@ -154,7 +156,8 @@ public class ReviewDAO {
                 pstmt.setInt(5, Integer.parseInt(review.getId()));
                 pstmt.setInt(6, usuarioId);
                 if (pstmt.executeUpdate() > 0) {
-                    if (atualizarMediaFilme(conn, filmeId, notaNova, notaAntiga)) {
+                    // CORREÇÃO: Chamada atualizada para recalcularMediaFilme
+                    if (recalcularMediaFilme(conn, filmeId, notaNova, notaAntiga)) {
                         conn.commit();
                         return true;
                     }
@@ -225,7 +228,8 @@ public class ReviewDAO {
                 insertStmt.setInt(5, notaInt);
                 insertStmt.setString(6, "false");
                 if (insertStmt.executeUpdate() > 0) {
-                    if (atualizarMediaFilme(conn, filmeIdInt, notaInt, 0)) {
+                    // CORREÇÃO: Chamada atualizada para recalcularMediaFilme
+                    if (recalcularMediaFilme(conn, filmeIdInt, notaInt, 0)) {
                         conn.commit();
                         return true;
                     }

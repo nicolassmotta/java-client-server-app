@@ -366,7 +366,6 @@ public class GerenciadorCliente implements Runnable {
                 return;
             }
 
-            // Adicionando a validação 405 que estava faltando
             if (usuario.length() < 3 || usuario.length() > 20 || !usuario.matches("^[a-zA-Z0-9]+$") ||
                     senha.length() < 3 || senha.length() > 20 || !senha.matches("^[a-zA-Z0-9]+$")) {
                 enviarErroComMensagem(405, "Erro: Campos inválidos, verifique o tipo e quantidade de caracteres");
@@ -376,11 +375,20 @@ public class GerenciadorCliente implements Runnable {
             String[] dadosUsuario = usuarioDAO.validarLogin(usuario, senha);
 
             if (dadosUsuario != null) {
-                this.idUsuarioLogado = dadosUsuario[0];
-                this.loginLogado = dadosUsuario[1];
+                String idRecuperado = dadosUsuario[0];
+                String loginRecuperado = dadosUsuario[1];
                 String funcao = dadosUsuario[2];
 
+                if (gerenciadorUsuarios.contemUsuario(idRecuperado)) {
+                    logger.accept("Tentativa de login bloqueada: Usuário '" + loginRecuperado + "' (ID: " + idRecuperado + ") já está logado.");
+                    enviarErroComMensagem(403, "Erro: Este usuário já está conectado em outra sessão.");
+                    return;
+                }
+
+                this.idUsuarioLogado = idRecuperado;
+                this.loginLogado = loginRecuperado;
                 gerenciadorUsuarios.adicionar(this.idUsuarioLogado, this.loginLogado, this);
+
                 logger.accept("Operação LOGIN bem-sucedida para '" + this.loginLogado + "' (" + funcao + ").");
 
                 String token = UtilitarioJwt.gerarToken(this.idUsuarioLogado, this.loginLogado, funcao);
@@ -390,11 +398,14 @@ public class GerenciadorCliente implements Runnable {
                 resposta.addProperty("mensagem", "Sucesso: operação realizada com sucesso");
                 resposta.addProperty("token", token);
                 enviarResposta(resposta);
+
             } else {
                 enviarErroComMensagem(403, "Erro: Sem permissão.");
             }
+
         } catch (Exception e) {
-            logger.accept("Erro inesperado durante o login para usuário '" + (jsonObject.has("usuario") ? jsonObject.get("usuario").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
+            logger.accept("Erro inesperado durante o login para usuário '" +
+                    (jsonObject.has("usuario") ? jsonObject.get("usuario").getAsString() : "DESCONHECIDO") + "': " + e.getMessage());
             enviarErroComMensagem(500, "Erro: Falha interna do servidor");
         }
     }
@@ -793,11 +804,18 @@ public class GerenciadorCliente implements Runnable {
                     return;
                 }
 
-                if (reviewDAO.excluirReview(reviewId, usuarioId, funcao)) {
+                // CORREÇÃO AQUI: Captura o int e verifica os casos
+                int resultado = reviewDAO.excluirReview(reviewId, usuarioId, funcao);
+
+                if (resultado == ReviewDAO.RESULT_SUCESSO) {
                     enviarSucessoComMensagem(200, "Sucesso: operação realizada com sucesso");
-                } else {
-                    logger.accept("Falha ao excluir review ID " + reviewId + " para usuário ID " + usuarioId + ". Review inexistente ou permissão negada.");
+                } else if (resultado == ReviewDAO.RESULT_SEM_PERMISSAO) {
+                    // Retorna 403 Forbidden
+                    enviarErroComMensagem(403, "Erro: Sem permissão para excluir esta review.");
+                } else if (resultado == ReviewDAO.RESULT_NAO_ENCONTRADO) {
                     enviarErroComMensagem(404, "Erro: Recurso inexistente");
+                } else {
+                    enviarErroComMensagem(500, "Erro: Falha interna do servidor");
                 }
 
             } catch (Exception e) {
