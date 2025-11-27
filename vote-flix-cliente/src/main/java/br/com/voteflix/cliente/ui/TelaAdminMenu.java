@@ -8,8 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-
 import java.net.URL;
 
 public class TelaAdminMenu {
@@ -20,56 +20,64 @@ public class TelaAdminMenu {
     }
 
     public Scene criarCena() {
-        VBox layout = new VBox(15);
-        layout.setPadding(new Insets(30));
+        VBox layout = new VBox(30);
+        layout.setPadding(new Insets(50));
         layout.setAlignment(Pos.CENTER);
 
-        Label titleLabel = new Label("Painel Administrador");
+        Label titleLabel = new Label("PAINEL ADMIN");
+        titleLabel.getStyleClass().add("title-label");
+        titleLabel.setStyle("-fx-text-fill: #E50914;");
 
-        Button gerenciarFilmesButton = new Button("Gerenciar Filmes");
-        gerenciarFilmesButton.setPrefWidth(250);
+        Label subTitle = new Label("Gerenciamento do Sistema");
+        subTitle.getStyleClass().add("subtitle-label");
 
-        Button gerenciarUsuariosButton = new Button("Gerenciar Usuários");
-        gerenciarUsuariosButton.setPrefWidth(250);
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setAlignment(Pos.CENTER);
 
-        Button logoutButton = new Button("Logout");
+        VBox cardFilmes = criarCard("Gerenciar Filmes", "Adicionar ou remover filmes.", "🎞️");
+        VBox cardUsers = criarCard("Gerenciar Usuários", "Resetar senhas ou banir.", "👥");
+
+        grid.add(cardFilmes, 0, 0);
+        grid.add(cardUsers, 1, 0);
+
+        Button logoutButton = new Button("Sair do Modo Admin");
+        logoutButton.getStyleClass().add("secondary-button");
         logoutButton.setPrefWidth(250);
 
-        gerenciarFilmesButton.setOnAction(e -> sceneManager.mostrarTelaAdminFilmes());
-
-        gerenciarUsuariosButton.setOnAction(e -> sceneManager.mostrarTelaAdminUsuarios());
+        cardFilmes.setOnMouseClicked(e -> sceneManager.mostrarTelaAdminFilmes());
+        cardUsers.setOnMouseClicked(e -> sceneManager.mostrarTelaAdminUsuarios());
 
         logoutButton.setOnAction(e -> {
             ClienteSocket socket = ClienteSocket.getInstance();
-            if (socket != null) {
-                socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
-            } else {
-                TokenStorage.clearToken();
-                sceneManager.mostrarTelaConexao();
-            }
+            if (socket != null) socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
+            else { TokenStorage.clearToken(); sceneManager.mostrarTelaConexao(); }
         });
 
-        layout.getChildren().addAll(
-                titleLabel,
-                gerenciarFilmesButton,
-                gerenciarUsuariosButton,
-                new Separator(),
-                logoutButton
-        );
+        layout.getChildren().addAll(titleLabel, subTitle, grid, new Separator(), logoutButton);
 
-        Scene scene = new Scene(layout, 800, 600);
-
+        Scene scene = new Scene(layout, 900, 650);
         URL cssResource = getClass().getResource("/styles.css");
-        if (cssResource != null) {
-            scene.getStylesheets().add(cssResource.toExternalForm());
-            titleLabel.getStyleClass().add("title-label");
-            gerenciarFilmesButton.getStyleClass().add("secondary-button");
-            gerenciarUsuariosButton.getStyleClass().add("secondary-button");
-        } else {
-            System.err.println("Recurso 'styles.css' não encontrado.");
-            layout.setStyle("-fx-background-color: #F0F0F0;");
-        }
+        if (cssResource != null) scene.getStylesheets().add(cssResource.toExternalForm());
 
         return scene;
+    }
+
+    private VBox criarCard(String titulo, String desc, String emoji) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("menu-card");
+        card.setPrefSize(240, 160);
+
+        Label icon = new Label(emoji);
+        icon.setStyle("-fx-font-size: 36px;");
+        Label t = new Label(titulo);
+        t.getStyleClass().add("menu-card-title");
+        Label d = new Label(desc);
+        d.getStyleClass().add("menu-card-desc");
+        d.setWrapText(true); d.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(icon, t, d);
+        return card;
     }
 }

@@ -7,10 +7,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.ButtonType;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import java.net.URL;
 
 public class TelaMenu {
@@ -21,168 +18,126 @@ public class TelaMenu {
     }
 
     public Scene criarCena() {
-        VBox layout = new VBox(15);
-        layout.setPadding(new Insets(30));
-        layout.setAlignment(Pos.CENTER);
+        BorderPane root = new BorderPane();
+        root.setPadding(new Insets(40));
 
-        Label titleLabel = new Label("Menu Principal");
+        VBox header = new VBox(10);
+        header.setAlignment(Pos.CENTER);
 
-        Button listarFilmesButton = new Button("Ver Filmes");
-        listarFilmesButton.setPrefWidth(250);
+        Label titleLabel = new Label("VOTEFLIX");
+        titleLabel.getStyleClass().add("title-label");
 
-        Button listarMinhasReviewsButton = new Button("Ver Minhas Reviews");
-        listarMinhasReviewsButton.setPrefWidth(250);
+        Label welcomeLabel = new Label("O que você quer assistir hoje?");
+        welcomeLabel.getStyleClass().add("subtitle-label");
 
-        Button verDadosButton = new Button("Ver Meus Dados");
-        verDadosButton.setPrefWidth(250);
+        header.getChildren().addAll(titleLabel, welcomeLabel);
+        root.setTop(header);
 
-        Button editarButton = new Button("Editar Minha Senha");
-        editarButton.setPrefWidth(250);
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setAlignment(Pos.CENTER);
+        grid.setPadding(new Insets(40));
 
-        Button excluirButton = new Button("Excluir Minha Conta");
-        excluirButton.setPrefWidth(250);
+        VBox cardFilmes = criarCardMenu("Catálogo de Filmes", "Explore, avalie e descubra.", "🎬");
+        VBox cardReviews = criarCardMenu("Minhas Avaliações", "Gerencie suas críticas.", "⭐");
+        VBox cardDados = criarCardMenu("Meu Perfil", "Visualize seus dados.", "👤");
+        VBox cardSenha = criarCardMenu("Segurança", "Altere sua senha.", "🔒");
 
-        Button logoutButton = new Button("Logout");
-        logoutButton.setPrefWidth(250);
+        grid.add(cardFilmes, 0, 0);
+        grid.add(cardReviews, 1, 0);
+        grid.add(cardDados, 0, 1);
+        grid.add(cardSenha, 1, 1);
 
-        listarFilmesButton.setOnAction(e -> sceneManager.mostrarTelaListarFilmes());
+        root.setCenter(grid);
 
-        listarMinhasReviewsButton.setOnAction(e -> sceneManager.mostrarTelaMinhasReviews());
+        VBox footer = new VBox(15);
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(20, 0, 0, 0));
 
-        verDadosButton.setOnAction(e -> {
+        Button btnExcluir = new Button("Excluir Minha Conta");
+        btnExcluir.getStyleClass().add("secondary-button");
+        btnExcluir.setStyle("-fx-border-color: #E50914; -fx-text-fill: #E50914;");
+        btnExcluir.setPrefWidth(200);
+
+        Button btnLogout = new Button("Sair do Sistema");
+        btnLogout.getStyleClass().add("secondary-button");
+        btnLogout.setPrefWidth(200);
+
+        footer.getChildren().addAll(new Separator(), btnExcluir, btnLogout);
+        root.setBottom(footer);
+
+        cardFilmes.setOnMouseClicked(e -> sceneManager.mostrarTelaListarFilmes());
+        cardReviews.setOnMouseClicked(e -> sceneManager.mostrarTelaMinhasReviews());
+
+        cardDados.setOnMouseClicked(e -> {
             ClienteSocket.getInstance().enviarListarDados((sucesso, dados, mensagem) -> {
                 Platform.runLater(() -> {
-                    if (sucesso) {
-                        if (dados != null) {
-                            String login = null;
-                            if (dados.isJsonPrimitive() && dados.getAsJsonPrimitive().isString()) {
-                                login = dados.getAsString();
-                            }
-
-                            if (login != null) {
-                                Dialog<Void> dialog = new Dialog<>();
-
-                                if (getClass().getResource("/styles.css") != null) {
-                                    dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-                                }
-
-                                dialog.setTitle("Meus Dados");
-                                dialog.setHeaderText("Informações da Conta");
-
-                                GridPane grid = new GridPane();
-                                grid.setHgap(10);
-                                grid.setVgap(10);
-                                grid.setPadding(new Insets(20, 100, 10, 10));
-
-                                TextField txtLogin = new TextField(login);
-                                txtLogin.setEditable(false);
-
-                                grid.add(new Label("Login:"), 0, 0);
-                                grid.add(txtLogin, 1, 0);
-
-                                dialog.getDialogPane().setContent(grid);
-
-                                ButtonType btnFechar = new ButtonType("Fechar", ButtonBar.ButtonData.CANCEL_CLOSE);
-                                dialog.getDialogPane().getButtonTypes().add(btnFechar);
-
-                                dialog.showAndWait();
-                            } else {
-                                AlertaUtil.mostrarInformacao("Meus Dados", mensagem);
-                                System.err.println("Recebido sucesso em Listar Dados, mas formato inesperado: " + dados.toString());
-                            }
-                        } else {
-                            AlertaUtil.mostrarInformacao("Meus Dados", mensagem);
-                        }
+                    if (sucesso && dados != null) {
+                        String login = dados.isJsonPrimitive() ? dados.getAsString() : "Usuário";
+                        AlertaUtil.mostrarInformacao("Meus Dados", "Usuário Logado: " + login + "\nStatus: Ativo");
                     } else {
-                        AlertaUtil.mostrarErro("Erro na Consulta", mensagem);
+                        AlertaUtil.mostrarErro("Erro", mensagem);
                     }
                 });
             });
         });
 
-        editarButton.setOnAction(e -> {
+        cardSenha.setOnMouseClicked(e -> {
             TextInputDialog dialog = new TextInputDialog();
-
-            if (getClass().getResource("/styles.css") != null) {
-                dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-            }
-
-            dialog.setTitle("Editar Senha");
-            dialog.setHeaderText("Digite sua nova senha:");
+            if (getClass().getResource("/styles.css") != null) dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            dialog.setTitle("Alterar Senha");
+            dialog.setHeaderText("Segurança da Conta");
             dialog.setContentText("Nova Senha:");
-
             dialog.showAndWait().ifPresent(novaSenha -> {
-                ClienteSocket.getInstance().enviarEdicaoUsuario(novaSenha, (sucesso, mensagem) -> {
-                    Platform.runLater(() -> {
-                        if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Edição de Senha", mensagem);
-                        } else {
-                            AlertaUtil.mostrarErro("Erro na Edição", mensagem);
-                        }
-                    });
-                });
+                if(novaSenha.length() < 3) { AlertaUtil.mostrarErro("Erro", "Senha muito curta."); return; }
+                ClienteSocket.getInstance().enviarEdicaoUsuario(novaSenha, (sucesso, mensagem) -> Platform.runLater(() -> {
+                    if (sucesso) AlertaUtil.mostrarInformacao("Sucesso", mensagem);
+                    else AlertaUtil.mostrarErro("Erro", mensagem);
+                }));
             });
         });
 
-        excluirButton.setOnAction(e -> {
-            boolean confirmado = AlertaUtil.mostrarConfirmacao("Excluir Conta", "Tem certeza que deseja excluir sua conta? Esta ação é irreversível.");
-            if (confirmado) {
-                ClienteSocket.getInstance().enviarExcluirUsuario((sucesso, mensagem) -> {
-                    Platform.runLater(() -> {
-                        if (sucesso) {
-                            AlertaUtil.mostrarInformacao("Sucesso", mensagem);
-                        } else {
-                            AlertaUtil.mostrarErro("Erro ao Excluir", mensagem);
-                        }
-
-                        ClienteSocket socket = ClienteSocket.getInstance();
-                        if (socket != null) {
-                            socket.fecharConexaoLocalmente();
-                        }
-
+        btnExcluir.setOnAction(e -> {
+            if (AlertaUtil.mostrarConfirmacao("Zona de Perigo", "Tem certeza? Sua conta e todas as reviews serão apagadas permanentemente.")) {
+                ClienteSocket.getInstance().enviarExcluirUsuario((sucesso, mensagem) -> Platform.runLater(() -> {
+                    if (sucesso) {
+                        ClienteSocket.getInstance().fecharConexaoLocalmente();
                         sceneManager.mostrarTelaConexao();
-                    });
-                });
+                    } else AlertaUtil.mostrarErro("Erro", mensagem);
+                }));
             }
         });
 
-        logoutButton.setOnAction(e -> {
+        btnLogout.setOnAction(e -> {
             ClienteSocket socket = ClienteSocket.getInstance();
-            if (socket != null) {
-                socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
-            } else {
-                TokenStorage.clearToken();
-                sceneManager.mostrarTelaConexao();
-            }
+            if (socket != null) socket.solicitarLogoutEFechamento(() -> sceneManager.mostrarTelaConexao());
+            else { TokenStorage.clearToken(); sceneManager.mostrarTelaConexao(); }
         });
 
-        layout.getChildren().addAll(
-                titleLabel,
-                listarFilmesButton,
-                listarMinhasReviewsButton,
-                new Separator(),
-                verDadosButton,
-                editarButton,
-                new Separator(),
-                excluirButton,
-                logoutButton
-        );
-
-        Scene scene = new Scene(layout, 800, 600);
-
+        Scene scene = new Scene(root, 900, 650);
         URL cssResource = getClass().getResource("/styles.css");
-        if (cssResource != null) {
-            scene.getStylesheets().add(cssResource.toExternalForm());
-            titleLabel.getStyleClass().add("title-label");
-            listarFilmesButton.getStyleClass().add("secondary-button");
-            listarMinhasReviewsButton.getStyleClass().add("secondary-button");
-            verDadosButton.getStyleClass().add("secondary-button");
-            editarButton.getStyleClass().add("secondary-button");
-        } else {
-            System.err.println("Recurso 'styles.css' não encontrado.");
-            layout.setStyle("-fx-background-color: #F0F0F0;");
-        }
-
+        if (cssResource != null) scene.getStylesheets().add(cssResource.toExternalForm());
         return scene;
+    }
+
+    private VBox criarCardMenu(String titulo, String subtitulo, String iconeEmoji) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("menu-card");
+        card.setPrefSize(220, 140);
+
+        Label icon = new Label(iconeEmoji);
+        icon.setStyle("-fx-font-size: 32px;");
+
+        Label title = new Label(titulo);
+        title.getStyleClass().add("menu-card-title");
+
+        Label desc = new Label(subtitulo);
+        desc.getStyleClass().add("menu-card-desc");
+        desc.setWrapText(true);
+        desc.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(icon, title, desc);
+        return card;
     }
 }
