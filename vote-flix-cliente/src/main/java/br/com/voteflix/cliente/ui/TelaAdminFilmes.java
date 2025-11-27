@@ -25,12 +25,6 @@ public class TelaAdminFilmes {
     private List<FilmeItem> masterList = new ArrayList<>();
     private ComboBox<String> filtroGenero = new ComboBox<>();
 
-    private Button btnAnterior = new Button("❮");
-    private Button btnProximo = new Button("❯");
-    private Label lblPagina = new Label("1 / 1");
-    private static final int ITENS_POR_PAGINA = 10;
-    private int paginaAtual = 0;
-
     private final List<String> GENEROS_PRE_CADASTRADOS = Arrays.asList(
             "Ação", "Aventura", "Comédia", "Drama", "Fantasia", "Ficção Científica",
             "Terror", "Romance", "Documentário", "Musical", "Animação"
@@ -87,9 +81,9 @@ public class TelaAdminFilmes {
                 if (empty || item == null) {
                     setText(null);
                     setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
                 } else {
                     setText(item.titulo + " (" + item.ano + ")");
-                    setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10;");
                 }
             }
         });
@@ -104,17 +98,12 @@ public class TelaAdminFilmes {
         Button btnExcluir = new Button("Excluir");
         btnExcluir.getStyleClass().add("secondary-button");
         btnExcluir.setStyle("-fx-border-color: #E50914; -fx-text-fill: #E50914;");
-        Button btnReviews = new Button("Reviews");
+        Button btnReviews = new Button("Gerenciar Reviews");
         btnReviews.getStyleClass().add("secondary-button");
 
         crudBar.getChildren().addAll(btnCriar, btnEditar, btnExcluir, btnReviews);
 
-        HBox paginacao = new HBox(10, btnAnterior, lblPagina, btnProximo);
-        paginacao.setAlignment(Pos.CENTER);
-        btnAnterior.getStyleClass().add("secondary-button");
-        btnProximo.getStyleClass().add("secondary-button");
-
-        content.getChildren().addAll(title, filtroGenero, listaFilmesView, paginacao, crudBar);
+        content.getChildren().addAll(title, filtroGenero, listaFilmesView, crudBar);
         root.setCenter(content);
 
         btnCriar.setOnAction(e -> abrirDialogFilme(null).ifPresent(j -> ClienteSocket.getInstance().adminCriarFilme(j, (s, m) -> Platform.runLater(() -> { if(s) { carregarFilmes(); AlertaUtil.mostrarInformacao("Sucesso", m); } else AlertaUtil.mostrarErro("Erro", m); }))));
@@ -139,9 +128,7 @@ public class TelaAdminFilmes {
             abrirDialogGerenciarReviews(sel);
         });
 
-        filtroGenero.setOnAction(e -> { paginaAtual=0; atualizarListaExibida(); });
-        btnAnterior.setOnAction(e -> { if(paginaAtual>0){ paginaAtual--; atualizarListaExibida(); }});
-        btnProximo.setOnAction(e -> { paginaAtual++; atualizarListaExibida(); });
+        filtroGenero.setOnAction(e -> atualizarListaExibida());
 
         Scene scene = new Scene(root, 900, 650);
         if(getClass().getResource("/styles.css") != null) scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
@@ -162,28 +149,44 @@ public class TelaAdminFilmes {
         dialog.getDialogPane().getButtonTypes().addAll(btnSalvar, btnCancelar);
 
         GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
+        grid.setHgap(20); grid.setVgap(15); grid.setPadding(new Insets(30));
 
-        TextField txtTitulo = new TextField(); txtTitulo.setPromptText("Título");
-        TextField txtDiretor = new TextField(); txtDiretor.setPromptText("Diretor");
-        TextField txtAno = new TextField(); txtAno.setPromptText("Ano");
-        TextArea txtSinopse = new TextArea(); txtSinopse.setPromptText("Sinopse");
+        ColumnConstraints col1 = new ColumnConstraints(); col1.setPercentWidth(25);
+        ColumnConstraints col2 = new ColumnConstraints(); col2.setPercentWidth(75);
+        grid.getColumnConstraints().addAll(col1, col2);
 
-        grid.add(new Label("Título:"), 0, 0); grid.add(txtTitulo, 1, 0);
-        grid.add(new Label("Diretor:"), 0, 1); grid.add(txtDiretor, 1, 1);
-        grid.add(new Label("Ano:"), 0, 2); grid.add(txtAno, 1, 2);
-        grid.add(new Label("Sinopse:"), 0, 3); grid.add(txtSinopse, 1, 3);
+        TextField txtTitulo = new TextField(); txtTitulo.setPromptText("Título do Filme");
+        TextField txtDiretor = new TextField(); txtDiretor.setPromptText("Nome do Diretor");
+        TextField txtAno = new TextField(); txtAno.setPromptText("Ano de Lançamento");
+        TextArea txtSinopse = new TextArea(); txtSinopse.setPromptText("Sinopse detalhada...");
+        txtSinopse.setWrapText(true);
+
+        Label lblTitulo = new Label("Título:"); lblTitulo.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label lblDiretor = new Label("Diretor:"); lblDiretor.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label lblAno = new Label("Ano:"); lblAno.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label lblSinopse = new Label("Sinopse:"); lblSinopse.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label lblGeneros = new Label("Gêneros:"); lblGeneros.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        grid.add(lblTitulo, 0, 0); grid.add(txtTitulo, 1, 0);
+        grid.add(lblDiretor, 0, 1); grid.add(txtDiretor, 1, 1);
+        grid.add(lblAno, 0, 2); grid.add(txtAno, 1, 2);
+        grid.add(lblSinopse, 0, 3); grid.add(txtSinopse, 1, 3);
 
         VBox generosBox = new VBox(5);
+        generosBox.setPadding(new Insets(10));
+        generosBox.setStyle("-fx-background-color: #2b2b2b;");
         List<CheckBox> checkBoxes = new ArrayList<>();
         for (String genero : GENEROS_PRE_CADASTRADOS) {
             CheckBox cb = new CheckBox(genero);
-            cb.setStyle("-fx-text-fill: white;");
             checkBoxes.add(cb); generosBox.getChildren().add(cb);
         }
+
         ScrollPane scrollGeneros = new ScrollPane(generosBox);
-        scrollGeneros.setFitToWidth(true); scrollGeneros.setPrefHeight(100);
-        grid.add(new Label("Gêneros:"), 0, 4); grid.add(scrollGeneros, 1, 4);
+        scrollGeneros.setFitToWidth(true);
+        scrollGeneros.setPrefHeight(150);
+        scrollGeneros.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        grid.add(lblGeneros, 0, 4); grid.add(scrollGeneros, 1, 4);
 
         if (modoEdicao) {
             txtTitulo.setText(filmeExistente.get("titulo").getAsString());
@@ -197,8 +200,9 @@ public class TelaAdminFilmes {
                 checkBoxes.forEach(cb -> { if(set.contains(cb.getText())) cb.setSelected(true); });
             }
         }
+
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefSize(500, 500);
+        dialog.getDialogPane().setPrefSize(800, 700);
 
         dialog.setResultConverter(btn -> {
             if (btn == btnSalvar) {
@@ -219,47 +223,90 @@ public class TelaAdminFilmes {
         Dialog<Void> dialog = new Dialog<>();
         if (getClass().getResource("/styles.css") != null) dialog.getDialogPane().getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         dialog.setTitle("Reviews: " + filme.titulo);
-        dialog.setHeaderText("Apagar avaliações impróprias");
+        dialog.setHeaderText("Detalhes Completos para Administração");
 
-        ListView<String> listaReviews = new ListView<>();
-        List<JsonObject> reviewsData = new ArrayList<>();
+        ListView<JsonObject> listaReviews = new ListView<>();
+        listaReviews.setCellFactory(param -> new ListCell<JsonObject>() {
+            @Override
+            protected void updateItem(JsonObject item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String autor = item.get("nome_usuario").getAsString();
+                    String nota = item.get("nota").getAsString();
+                    String data = item.has("data") ? item.get("data").getAsString() : "Data N/A";
+                    String editado = item.has("editado") && item.get("editado").getAsString().equalsIgnoreCase("true") ? "SIM" : "NÃO";
+                    String titulo = item.get("titulo").getAsString();
+                    String desc = item.get("descricao").getAsString();
+
+                    VBox box = new VBox(5);
+                    box.setStyle("-fx-padding: 10; -fx-background-color: #222; -fx-border-color: #444; -fx-border-radius: 5;");
+
+                    Label header = new Label(String.format("Autor: %s | Nota: %s | Data: %s | Editado: %s", autor, nota, data, editado));
+                    header.setStyle("-fx-text-fill: #E50914; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+                    Label body = new Label(String.format("Título: %s\nReview: %s", titulo, desc));
+                    body.setStyle("-fx-text-fill: white;");
+                    body.setWrapText(true);
+
+                    box.getChildren().addAll(header, body);
+                    setGraphic(box);
+                }
+            }
+        });
+
         Button btnApagar = new Button("Apagar Selecionada");
-        btnApagar.setStyle("-fx-background-color: #E50914; -fx-text-fill: white;");
+        btnApagar.setStyle("-fx-background-color: #E50914; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;");
+
+        HBox bottomBox = new HBox(btnApagar);
+        bottomBox.setAlignment(Pos.CENTER);
+        bottomBox.setPadding(new Insets(15, 0, 0, 0));
 
         ClienteSocket.getInstance().enviarBuscarFilmePorId(filme.id, (sucesso, dados, msg) -> {
             Platform.runLater(() -> {
+                listaReviews.getItems().clear();
                 if (sucesso && dados != null && dados.isJsonObject()) {
                     JsonObject obj = dados.getAsJsonObject();
                     if (obj.has("reviews")) {
                         JsonArray arr = obj.getAsJsonArray("reviews");
                         for (JsonElement el : arr) {
-                            JsonObject r = el.getAsJsonObject();
-                            reviewsData.add(r);
-                            listaReviews.getItems().add(String.format("%s - %s (%s/5)\n\"%s\"", r.get("nome_usuario").getAsString(), r.get("titulo").getAsString(), r.get("nota").getAsString(), r.get("descricao").getAsString()));
+                            listaReviews.getItems().add(el.getAsJsonObject());
                         }
                     }
                 }
-                if (reviewsData.isEmpty()) listaReviews.getItems().add("Sem avaliações.");
+                if (listaReviews.getItems().isEmpty()) {
+                    listaReviews.setPlaceholder(new Label("Sem avaliações."));
+                }
             });
         });
 
         btnApagar.setOnAction(e -> {
-            int idx = listaReviews.getSelectionModel().getSelectedIndex();
-            if (idx >= 0 && idx < reviewsData.size()) {
-                String idR = reviewsData.get(idx).get("id").getAsString();
+            JsonObject sel = listaReviews.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                String idR = sel.get("id").getAsString();
                 if (AlertaUtil.mostrarConfirmacao("Apagar", "Tem certeza?")) {
                     ClienteSocket.getInstance().enviarExcluirReview(idR, (s, m) -> Platform.runLater(() -> {
-                        if (s) { AlertaUtil.mostrarInformacao("Sucesso", "Review apagada."); dialog.close(); }
+                        if (s) {
+                            AlertaUtil.mostrarInformacao("Sucesso", "Review apagada.");
+                            dialog.close();
+                        }
                         else AlertaUtil.mostrarErro("Erro", m);
                     }));
                 }
+            } else {
+                AlertaUtil.mostrarErro("Erro", "Selecione uma review para apagar.");
             }
         });
 
-        VBox box = new VBox(10, listaReviews, btnApagar);
-        box.setPadding(new Insets(10));
-        dialog.getDialogPane().setContent(box);
-        dialog.getDialogPane().setPrefSize(500, 500);
+        BorderPane mainLayout = new BorderPane();
+        mainLayout.setCenter(listaReviews);
+        mainLayout.setBottom(bottomBox);
+        mainLayout.setPadding(new Insets(10));
+
+        dialog.getDialogPane().setContent(mainLayout);
+        dialog.getDialogPane().setPrefSize(900, 700);
 
         ButtonType btnFechar = new ButtonType("Fechar", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().add(btnFechar);
@@ -268,7 +315,7 @@ public class TelaAdminFilmes {
     }
 
     private void carregarFilmes() {
-        masterList.clear(); listaFilmesView.getItems().clear(); paginaAtual = 0;
+        masterList.clear(); listaFilmesView.getItems().clear();
         ClienteSocket.getInstance().enviarListarFilmes((s, d, m) -> Platform.runLater(() -> {
             if (s && d.isJsonArray()) {
                 for (JsonElement el : d.getAsJsonArray()) {
@@ -293,19 +340,6 @@ public class TelaAdminFilmes {
         String gen = filtroGenero.getValue();
         if (gen == null || "Todos os Gêneros".equals(gen)) filtrada.addAll(masterList);
         else for (FilmeItem i : masterList) if (i.generos.contains(gen)) filtrada.add(i);
-
-        int total = (int) Math.ceil((double) filtrada.size() / ITENS_POR_PAGINA);
-        if (total == 0) total = 1;
-        if (paginaAtual >= total) paginaAtual = total - 1;
-        if (paginaAtual < 0) paginaAtual = 0;
-
-        lblPagina.setText((paginaAtual + 1) + " / " + total);
-        btnAnterior.setDisable(paginaAtual == 0);
-        btnProximo.setDisable(paginaAtual >= total - 1);
-
-        int ini = paginaAtual * ITENS_POR_PAGINA;
-        int fim = Math.min(ini + ITENS_POR_PAGINA, filtrada.size());
-        listaFilmesView.getItems().clear();
-        if (ini < fim) listaFilmesView.getItems().addAll(filtrada.subList(ini, fim));
+        listaFilmesView.getItems().setAll(filtrada);
     }
 }

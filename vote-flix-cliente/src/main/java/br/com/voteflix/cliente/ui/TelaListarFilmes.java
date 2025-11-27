@@ -24,12 +24,6 @@ public class TelaListarFilmes {
     private List<FilmeItem> masterList = new ArrayList<>();
     private ComboBox<String> filtroGenero = new ComboBox<>();
 
-    private Button btnAnterior = new Button("❮");
-    private Button btnProximo = new Button("❯");
-    private Label lblPagina = new Label("1 / 1");
-    private static final int ITENS_POR_PAGINA = 10;
-    private int paginaAtual = 0;
-
     private final List<String> GENEROS_PRE_CADASTRADOS = Arrays.asList(
             "Ação", "Aventura", "Comédia", "Drama", "Fantasia", "Ficção Científica",
             "Terror", "Romance", "Documentário", "Musical", "Animação"
@@ -148,32 +142,17 @@ public class TelaListarFilmes {
         bottomBar.setAlignment(Pos.CENTER);
         bottomBar.setPadding(new Insets(10));
 
-        btnAnterior.getStyleClass().add("secondary-button");
-        btnProximo.getStyleClass().add("secondary-button");
-        lblPagina.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
-
         Button btnVer = new Button("Ver Detalhes");
         btnVer.getStyleClass().add("secondary-button");
 
         Button btnAvaliar = new Button("Avaliar Filme");
         btnAvaliar.getStyleClass().add("button");
 
-        Region spacerBottom = new Region();
-        HBox.setHgrow(spacerBottom, Priority.ALWAYS);
-
-        HBox paginacaoBox = new HBox(10, btnAnterior, lblPagina, btnProximo);
-        paginacaoBox.setAlignment(Pos.CENTER_LEFT);
-
-        HBox actionsBox = new HBox(10, btnVer, btnAvaliar);
-        actionsBox.setAlignment(Pos.CENTER_RIGHT);
-
-        bottomBar.getChildren().addAll(paginacaoBox, spacerBottom, actionsBox);
+        bottomBar.getChildren().addAll(btnVer, btnAvaliar);
         centerContent.getChildren().addAll(pageTitle, listaFilmesView, bottomBar);
         root.setCenter(centerContent);
 
-        filtroGenero.setOnAction(e -> { paginaAtual=0; atualizarListaExibida(); });
-        btnAnterior.setOnAction(e -> { if(paginaAtual>0){ paginaAtual--; atualizarListaExibida(); }});
-        btnProximo.setOnAction(e -> { paginaAtual++; atualizarListaExibida(); });
+        filtroGenero.setOnAction(e -> atualizarListaExibida());
 
         btnAvaliar.setOnAction(e -> {
             FilmeItem sel = listaFilmesView.getSelectionModel().getSelectedItem();
@@ -204,7 +183,7 @@ public class TelaListarFilmes {
     }
 
     private void carregarFilmes() {
-        masterList.clear(); listaFilmesView.getItems().clear(); paginaAtual = 0;
+        masterList.clear(); listaFilmesView.getItems().clear();
         ClienteSocket.getInstance().enviarListarFilmes((s, d, m) -> Platform.runLater(() -> {
             if (s && d.isJsonArray()) {
                 for (JsonElement el : d.getAsJsonArray()) {
@@ -232,20 +211,7 @@ public class TelaListarFilmes {
         String generoSelecionado = filtroGenero.getValue();
         if (generoSelecionado == null || "Todos os Gêneros".equals(generoSelecionado)) listaFiltrada.addAll(masterList);
         else for (FilmeItem item : masterList) if (item.generos.contains(generoSelecionado)) listaFiltrada.add(item);
-
-        int totalPaginas = (int) Math.ceil((double) listaFiltrada.size() / ITENS_POR_PAGINA);
-        if (totalPaginas == 0) totalPaginas = 1;
-        if (paginaAtual >= totalPaginas) paginaAtual = totalPaginas - 1;
-        if (paginaAtual < 0) paginaAtual = 0;
-
-        lblPagina.setText((paginaAtual + 1) + " / " + totalPaginas);
-        btnAnterior.setDisable(paginaAtual == 0);
-        btnProximo.setDisable(paginaAtual >= totalPaginas - 1);
-
-        int inicio = paginaAtual * ITENS_POR_PAGINA;
-        int fim = Math.min(inicio + ITENS_POR_PAGINA, listaFiltrada.size());
-        listaFilmesView.getItems().clear();
-        if (inicio < fim) listaFilmesView.getItems().addAll(listaFiltrada.subList(inicio, fim));
+        listaFilmesView.getItems().setAll(listaFiltrada);
     }
 
     private Optional<JsonObject> abrirDialogCriarReview(String filmeId) {
@@ -260,14 +226,23 @@ public class TelaListarFilmes {
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
-        grid.add(new Label("Título:"), 0, 0);
+
+        Label lblT = new Label("Título:"); lblT.setStyle("-fx-text-fill: white;");
+        Label lblN = new Label("Nota:"); lblN.setStyle("-fx-text-fill: white;");
+        Label lblO = new Label("Opinião:"); lblO.setStyle("-fx-text-fill: white;");
+
+        grid.add(lblT, 0, 0);
         TextField txtTitulo = new TextField();
+        txtTitulo.setStyle("-fx-background-color: #2b2b2b; -fx-text-fill: white;");
         grid.add(txtTitulo, 1, 0);
-        grid.add(new Label("Nota:"), 0, 1);
+
+        grid.add(lblN, 0, 1);
         ComboBox<Integer> cbNota = new ComboBox<>(); cbNota.getItems().addAll(1, 2, 3, 4, 5); cbNota.setValue(5);
         grid.add(cbNota, 1, 1);
-        grid.add(new Label("Opinião:"), 0, 2);
+
+        grid.add(lblO, 0, 2);
         TextArea txtDesc = new TextArea(); txtDesc.setWrapText(true);
+        txtDesc.setStyle("-fx-background-color: #2b2b2b; -fx-text-fill: white; -fx-control-inner-background: #2b2b2b;");
         grid.add(txtDesc, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
@@ -292,7 +267,10 @@ public class TelaListarFilmes {
         dialog.setHeaderText("Detalhes & Avaliações");
 
         VBox content = new VBox(15);
-        content.getChildren().add(new Label("Sinopse:"));
+        Label lblSinopse = new Label("Sinopse:");
+        lblSinopse.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        content.getChildren().add(lblSinopse);
+
         TextArea sinopse = new TextArea(filme.get("sinopse").getAsString());
         sinopse.setEditable(false); sinopse.setWrapText(true); sinopse.setPrefRowCount(3);
         content.getChildren().add(sinopse);
@@ -320,8 +298,22 @@ public class TelaListarFilmes {
             nota.setStyle("-fx-text-fill: #e5b109; -fx-font-weight: bold;");
 
             String dt = r.has("data") ? r.get("data").getAsString() : "";
+
+            boolean isEdited = false;
+            if(r.has("editado")) {
+                JsonElement elEdit = r.get("editado");
+                if (elEdit.isJsonPrimitive()) {
+                    if (elEdit.getAsJsonPrimitive().isBoolean()) isEdited = elEdit.getAsBoolean();
+                    else if (elEdit.getAsJsonPrimitive().isString()) isEdited = Boolean.parseBoolean(elEdit.getAsString()) || "true".equalsIgnoreCase(elEdit.getAsString());
+                }
+            }
+
+            if(isEdited) {
+                dt += " (Editado)";
+            }
+
             Label data = new Label(dt);
-            data.setStyle("-fx-text-fill: #666; -fx-font-size: 10px;");
+            data.setStyle("-fx-text-fill: #888; -fx-font-size: 11px; -fx-font-style: italic;");
 
             Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
             header.getChildren().addAll(user, nota, spacer, data);

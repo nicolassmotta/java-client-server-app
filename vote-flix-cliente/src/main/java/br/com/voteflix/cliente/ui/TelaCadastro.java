@@ -52,7 +52,6 @@ public class TelaCadastro {
         cadastrarButton.setOnAction(e -> {
             String login = loginField.getText();
             String senha = senhaField.getText();
-            if(login.isEmpty() || senha.isEmpty()) { AlertaUtil.mostrarErro("Erro", "Preencha tudo."); return; }
 
             ClienteSocket.getInstance().enviarCadastro(login, senha, (sucesso, mensagem) -> {
                 Platform.runLater(() -> {

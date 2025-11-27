@@ -90,7 +90,6 @@ public class TelaMenu {
             dialog.setHeaderText("Segurança da Conta");
             dialog.setContentText("Nova Senha:");
             dialog.showAndWait().ifPresent(novaSenha -> {
-                if(novaSenha.length() < 3) { AlertaUtil.mostrarErro("Erro", "Senha muito curta."); return; }
                 ClienteSocket.getInstance().enviarEdicaoUsuario(novaSenha, (sucesso, mensagem) -> Platform.runLater(() -> {
                     if (sucesso) AlertaUtil.mostrarInformacao("Sucesso", mensagem);
                     else AlertaUtil.mostrarErro("Erro", mensagem);

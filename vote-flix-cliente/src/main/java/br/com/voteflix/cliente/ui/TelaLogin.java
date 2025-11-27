@@ -9,7 +9,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import java.net.URL;
 
@@ -60,11 +59,6 @@ public class TelaLogin {
         loginButton.setOnAction(e -> {
             String login = loginField.getText();
             String senha = senhaField.getText();
-
-            if(login.isEmpty() || senha.isEmpty()) {
-                AlertaUtil.mostrarErro("Erro", "Por favor, preencha todos os campos.");
-                return;
-            }
 
             ClienteSocket.getInstance().enviarLogin(login, senha, (sucesso, mensagem) -> {
                 Platform.runLater(() -> {
