@@ -12,30 +12,25 @@ public class SceneManager {
     }
 
     private void switchScene(Scene newScene, String title) {
-        double currentX = primaryStage.getX();
-        double currentY = primaryStage.getY();
+        // 1. Captura o estado ATUAL da janela antes de trocar
         double currentWidth = primaryStage.getWidth();
         double currentHeight = primaryStage.getHeight();
         boolean isMaximized = primaryStage.isMaximized();
 
+        // Se for a primeira vez abrindo (valores inválidos), define o padrão
+        if (Double.isNaN(currentWidth) || currentWidth < 100) currentWidth = 800;
+        if (Double.isNaN(currentHeight) || currentHeight < 100) currentHeight = 600;
+
+        // 2. Troca a cena
         primaryStage.setScene(newScene);
         primaryStage.setTitle(title);
 
+        // 3. Reaplica o tamanho/estado anterior
         if (isMaximized) {
             primaryStage.setMaximized(true);
         } else {
-
-            if (!Double.isNaN(currentX) && !Double.isNaN(currentY)) {
-                primaryStage.setX(currentX);
-                primaryStage.setY(currentY);
-            } else {
-                primaryStage.centerOnScreen();
-            }
-
-            if (!Double.isNaN(currentWidth) && !Double.isNaN(currentHeight) && currentWidth > 0 && currentHeight > 0) {
-                primaryStage.setWidth(currentWidth);
-                primaryStage.setHeight(currentHeight);
-            }
+            primaryStage.setWidth(currentWidth);
+            primaryStage.setHeight(currentHeight);
         }
     }
 

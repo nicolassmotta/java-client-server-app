@@ -2,7 +2,6 @@ package br.com.voteflix.servidor.net;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
@@ -36,13 +35,16 @@ public class GerenciadorUsuarios {
         return usuariosConectados.containsKey(id);
     }
 
+    public boolean isUsuarioOnline(String id) {
+        return usuariosConectados.containsKey(id);
+    }
+
     public void desconectarUsuarioPorId(String id) {
         GerenciadorCliente handler = clienteHandlers.get(id);
         if (handler != null) {
             System.out.println("Forçando desconexão para usuário ID: " + id);
             handler.encerrarConexao();
         } else {
-            System.out.println("Tentativa de desconectar usuário ID " + id + " falhou: Handler não encontrado.");
             if (usuariosConectados.containsKey(id)) {
                 remover(id);
             }

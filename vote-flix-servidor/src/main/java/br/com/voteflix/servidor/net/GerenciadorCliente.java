@@ -8,7 +8,6 @@ import br.com.voteflix.servidor.model.Review;
 import br.com.voteflix.servidor.model.Usuario;
 import br.com.voteflix.servidor.security.UtilitarioJwt;
 import com.google.gson.Gson;
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,9 +27,7 @@ public class GerenciadorCliente implements Runnable {
 
     private final Socket socketCliente;
     private final Consumer<String> logger;
-    private final Gson gson = new GsonBuilder()
-            .setDateFormat("dd/MM/yyyy")
-            .create();
+    private final Gson gson = new GsonBuilder().setDateFormat("dd/MM/yyyy").create();
     private PrintWriter saida;
     private BufferedReader entrada;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
