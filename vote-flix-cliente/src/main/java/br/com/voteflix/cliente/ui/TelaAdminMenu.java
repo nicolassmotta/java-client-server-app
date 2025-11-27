@@ -26,7 +26,6 @@ public class TelaAdminMenu {
 
         Label titleLabel = new Label("PAINEL ADMIN");
         titleLabel.getStyleClass().add("title-label");
-        titleLabel.setStyle("-fx-text-fill: #E50914;");
 
         Label subTitle = new Label("Gerenciamento do Sistema");
         subTitle.getStyleClass().add("subtitle-label");
@@ -37,7 +36,7 @@ public class TelaAdminMenu {
         grid.setAlignment(Pos.CENTER);
 
         VBox cardFilmes = criarCard("Gerenciar Filmes", "Adicionar ou remover filmes.", "🎞️");
-        VBox cardUsers = criarCard("Gerenciar Usuários", "Resetar senhas ou banir.", "👥");
+        VBox cardUsers = criarCard("Gerenciar Usuários", "Resetar senhas ou banir.", "⚙");
 
         grid.add(cardFilmes, 0, 0);
         grid.add(cardUsers, 1, 0);
@@ -70,12 +69,15 @@ public class TelaAdminMenu {
         card.setPrefSize(240, 160);
 
         Label icon = new Label(emoji);
-        icon.setStyle("-fx-font-size: 36px;");
+        icon.setStyle("-fx-font-size: 36px; -fx-text-fill: #E50914;");
+
         Label t = new Label(titulo);
         t.getStyleClass().add("menu-card-title");
+
         Label d = new Label(desc);
         d.getStyleClass().add("menu-card-desc");
-        d.setWrapText(true); d.setAlignment(Pos.CENTER);
+        d.setWrapText(true);
+        d.setAlignment(Pos.CENTER);
 
         card.getChildren().addAll(icon, t, d);
         return card;

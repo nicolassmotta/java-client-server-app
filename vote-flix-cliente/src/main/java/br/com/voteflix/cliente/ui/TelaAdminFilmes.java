@@ -81,7 +81,6 @@ public class TelaAdminFilmes {
                 if (empty || item == null) {
                     setText(null);
                     setGraphic(null);
-                    setStyle("-fx-background-color: transparent;");
                 } else {
                     setText(item.titulo + " (" + item.ano + ")");
                 }
@@ -161,11 +160,11 @@ public class TelaAdminFilmes {
         TextArea txtSinopse = new TextArea(); txtSinopse.setPromptText("Sinopse detalhada...");
         txtSinopse.setWrapText(true);
 
-        Label lblTitulo = new Label("Título:"); lblTitulo.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        Label lblDiretor = new Label("Diretor:"); lblDiretor.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        Label lblAno = new Label("Ano:"); lblAno.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        Label lblSinopse = new Label("Sinopse:"); lblSinopse.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        Label lblGeneros = new Label("Gêneros:"); lblGeneros.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label lblTitulo = new Label("Título:"); lblTitulo.getStyleClass().add("label");
+        Label lblDiretor = new Label("Diretor:"); lblDiretor.getStyleClass().add("label");
+        Label lblAno = new Label("Ano:"); lblAno.getStyleClass().add("label");
+        Label lblSinopse = new Label("Sinopse:"); lblSinopse.getStyleClass().add("label");
+        Label lblGeneros = new Label("Gêneros:"); lblGeneros.getStyleClass().add("label");
 
         grid.add(lblTitulo, 0, 0); grid.add(txtTitulo, 1, 0);
         grid.add(lblDiretor, 0, 1); grid.add(txtDiretor, 1, 1);
@@ -184,7 +183,6 @@ public class TelaAdminFilmes {
         ScrollPane scrollGeneros = new ScrollPane(generosBox);
         scrollGeneros.setFitToWidth(true);
         scrollGeneros.setPrefHeight(150);
-        scrollGeneros.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         grid.add(lblGeneros, 0, 4); grid.add(scrollGeneros, 1, 4);
 
@@ -242,7 +240,7 @@ public class TelaAdminFilmes {
                     String desc = item.get("descricao").getAsString();
 
                     VBox box = new VBox(5);
-                    box.setStyle("-fx-padding: 10; -fx-background-color: #222; -fx-border-color: #444; -fx-border-radius: 5;");
+                    box.setStyle("-fx-padding: 10; -fx-border-color: #444; -fx-border-radius: 5;");
 
                     Label header = new Label(String.format("Autor: %s | Nota: %s | Data: %s | Editado: %s", autor, nota, data, editado));
                     header.setStyle("-fx-text-fill: #E50914; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -304,6 +302,8 @@ public class TelaAdminFilmes {
         mainLayout.setCenter(listaReviews);
         mainLayout.setBottom(bottomBox);
         mainLayout.setPadding(new Insets(10));
+
+        mainLayout.setPrefSize(900, 700);
 
         dialog.getDialogPane().setContent(mainLayout);
         dialog.getDialogPane().setPrefSize(900, 700);

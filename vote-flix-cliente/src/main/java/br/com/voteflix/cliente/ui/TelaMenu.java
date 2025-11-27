@@ -41,7 +41,7 @@ public class TelaMenu {
 
         VBox cardFilmes = criarCardMenu("Catálogo de Filmes", "Explore, avalie e descubra.", "🎬");
         VBox cardReviews = criarCardMenu("Minhas Avaliações", "Gerencie suas críticas.", "⭐");
-        VBox cardDados = criarCardMenu("Meu Perfil", "Visualize seus dados.", "👤");
+        VBox cardDados = criarCardMenu("Meu Perfil", "Visualize seus dados.", "☺");
         VBox cardSenha = criarCardMenu("Segurança", "Altere sua senha.", "🔒");
 
         grid.add(cardFilmes, 0, 0);
@@ -126,7 +126,7 @@ public class TelaMenu {
         card.setPrefSize(220, 140);
 
         Label icon = new Label(iconeEmoji);
-        icon.setStyle("-fx-font-size: 32px;");
+        icon.setStyle("-fx-font-size: 32px; -fx-text-fill: #E50914;");
 
         Label title = new Label(titulo);
         title.getStyleClass().add("menu-card-title");

@@ -85,7 +85,10 @@ public class TelaMinhasReviews {
 
             @Override protected void updateItem(ReviewItem item, boolean empty) {
                 super.updateItem(item, empty);
-                if(empty || item == null) { setText(null); setGraphic(null); }
+                if(empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                }
                 else {
                     String edit = "true".equalsIgnoreCase(item.editado) ? " (Editado)" : "";
                     titulo.setText(item.tituloReview);
@@ -148,11 +151,14 @@ public class TelaMinhasReviews {
         TextArea txtDescricao = new TextArea(reviewExistente.descricao); txtDescricao.setWrapText(true);
         ComboBox<Integer> cbNota = new ComboBox<>(); cbNota.getItems().addAll(1, 2, 3, 4, 5);
         try { cbNota.setValue(Integer.parseInt(reviewExistente.nota)); } catch (Exception e) { cbNota.getSelectionModel().selectFirst(); }
-        cbNota.setStyle("-fx-background-color: #333; -fx-text-fill: white;");
 
-        grid.add(new Label("Título:"), 0, 0); grid.add(txtTitulo, 1, 0);
-        grid.add(new Label("Nota:"), 0, 1); grid.add(cbNota, 1, 1);
-        grid.add(new Label("Descrição:"), 0, 2); grid.add(txtDescricao, 1, 2);
+        Label lblT = new Label("Título:"); lblT.getStyleClass().add("label");
+        Label lblN = new Label("Nota:"); lblN.getStyleClass().add("label");
+        Label lblD = new Label("Descrição:"); lblD.getStyleClass().add("label");
+
+        grid.add(lblT, 0, 0); grid.add(txtTitulo, 1, 0);
+        grid.add(lblN, 0, 1); grid.add(cbNota, 1, 1);
+        grid.add(lblD, 0, 2); grid.add(txtDescricao, 1, 2);
         GridPane.setVgrow(txtDescricao, Priority.ALWAYS);
 
         dialog.getDialogPane().setContent(grid);

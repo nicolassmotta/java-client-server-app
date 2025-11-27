@@ -227,22 +227,41 @@ public class TelaListarFilmes {
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
 
-        Label lblT = new Label("Título:"); lblT.setStyle("-fx-text-fill: white;");
-        Label lblN = new Label("Nota:"); lblN.setStyle("-fx-text-fill: white;");
-        Label lblO = new Label("Opinião:"); lblO.setStyle("-fx-text-fill: white;");
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(100);
+
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setHgrow(Priority.ALWAYS);
+
+        grid.getColumnConstraints().addAll(col1, col2);
+
+        Label lblT = new Label("Título:");
+        lblT.getStyleClass().add("label");
+        lblT.setStyle("-fx-font-weight: bold;");
+
+        Label lblN = new Label("Nota:");
+        lblN.getStyleClass().add("label");
+        lblN.setStyle("-fx-font-weight: bold;");
+
+        Label lblO = new Label("Opinião:");
+        lblO.getStyleClass().add("label");
+        lblO.setStyle("-fx-font-weight: bold;");
 
         grid.add(lblT, 0, 0);
         TextField txtTitulo = new TextField();
-        txtTitulo.setStyle("-fx-background-color: #2b2b2b; -fx-text-fill: white;");
+        txtTitulo.setPromptText("Resumo em poucas palavras");
         grid.add(txtTitulo, 1, 0);
 
         grid.add(lblN, 0, 1);
-        ComboBox<Integer> cbNota = new ComboBox<>(); cbNota.getItems().addAll(1, 2, 3, 4, 5); cbNota.setValue(5);
+        ComboBox<Integer> cbNota = new ComboBox<>();
+        cbNota.getItems().addAll(1, 2, 3, 4, 5);
+        cbNota.setValue(5);
         grid.add(cbNota, 1, 1);
 
         grid.add(lblO, 0, 2);
-        TextArea txtDesc = new TextArea(); txtDesc.setWrapText(true);
-        txtDesc.setStyle("-fx-background-color: #2b2b2b; -fx-text-fill: white; -fx-control-inner-background: #2b2b2b;");
+        TextArea txtDesc = new TextArea();
+        txtDesc.setWrapText(true);
+        txtDesc.setPromptText("O que você achou do filme?");
         grid.add(txtDesc, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
@@ -301,15 +320,8 @@ public class TelaListarFilmes {
 
             boolean isEdited = false;
             if(r.has("editado")) {
-                JsonElement elEdit = r.get("editado");
-                if (elEdit.isJsonPrimitive()) {
-                    if (elEdit.getAsJsonPrimitive().isBoolean()) isEdited = elEdit.getAsBoolean();
-                    else if (elEdit.getAsJsonPrimitive().isString()) isEdited = Boolean.parseBoolean(elEdit.getAsString()) || "true".equalsIgnoreCase(elEdit.getAsString());
-                }
-            }
-
-            if(isEdited) {
-                dt += " (Editado)";
+                String val = r.get("editado").getAsString();
+                isEdited = "true".equalsIgnoreCase(val) || "1".equals(val);
             }
 
             Label data = new Label(dt);
@@ -317,6 +329,12 @@ public class TelaListarFilmes {
 
             Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
             header.getChildren().addAll(user, nota, spacer, data);
+
+            if(isEdited) {
+                Label editTag = new Label("(Editado)");
+                editTag.setStyle("-fx-text-fill: #e5b109; -fx-font-size: 10px; -fx-font-weight: bold;");
+                header.getChildren().add(editTag);
+            }
 
             Label tituloRev = new Label(r.get("titulo").getAsString());
             tituloRev.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
