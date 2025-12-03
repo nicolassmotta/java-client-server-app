@@ -126,7 +126,7 @@ public class TelaListarFilmes {
                     try { n = Double.parseDouble(item.nota.replace(",", ".")); } catch (Exception e) {}
 
                     if (n > 0) {
-                        nota.setText(String.format("%.1f", n));
+                        nota.setText(String.format("%.2f", n));
                         if(n >= 4.0) nota.setStyle("-fx-text-fill: #46d369; -fx-border-color: #46d369; -fx-border-radius: 3px; -fx-padding: 2 5;");
                         else nota.setStyle("-fx-text-fill: #e5b109; -fx-border-color: #e5b109; -fx-border-radius: 3px; -fx-padding: 2 5;");
                     } else {
