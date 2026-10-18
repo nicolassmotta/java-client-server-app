@@ -1,6 +1,3 @@
-
------
-
 # VoteFlix: Um App Java Cliente-Servidor de Avaliação de Filmes
 
 ## 📖 Visão Geral
@@ -63,11 +60,11 @@ CREATE DATABASE voteflix_db;
 ```
 
 **B. Execute o Script de Criação:**
-Use o arquivo `schema.sql` (localizado dentro da pasta `ProjetoSistemasDistribuidos/`) para criar todas as tabelas e inserir os gêneros padrão.
+Use o arquivo `schema.sql` da raiz do repositório para criar todas as tabelas e inserir os gêneros padrão.
 
 ```bash
 # Estando na raiz do repositório (java-client-server-app)
-mysql -u root -p voteflix_db < ProjetoSistemasDistribuidos/schema.sql
+mysql -u root -p voteflix_db < schema.sql
 ```
 
 ### 3\. Configurar as Credenciais do Banco
@@ -76,7 +73,7 @@ Para manter as senhas seguras, o projeto usa um arquivo `db.properties` que é i
 
 1.  Navegue até a pasta `resources` do servidor:
     ```bash
-    cd ProjetoSistemasDistribuidos/vote-flix-servidor/src/main/resources/
+    cd vote-flix-servidor/src/main/resources/
     ```
 2.  Copie o arquivo de exemplo:
     ```bash
@@ -91,7 +88,7 @@ O servidor precisa ser iniciado primeiro.
 1.  Abra um terminal na pasta do servidor:
     ```bash
     # (A partir da raiz do repositório)
-    cd ProjetoSistemasDistribuidos/vote-flix-servidor
+    cd vote-flix-servidor
     ```
 2.  Compile e execute o projeto com Maven:
     ```bash
@@ -106,7 +103,7 @@ O servidor precisa ser iniciado primeiro.
 2.  Navegue até a pasta do cliente:
     ```bash
     # (A partir da raiz do repositório)
-    cd ProjetoSistemasDistribuidos/vote-flix-cliente
+    cd vote-flix-cliente
     ```
 3.  Compile e execute o projeto com Maven:
     ```bash
